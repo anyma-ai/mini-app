@@ -27,6 +27,9 @@ export function ShopPage() {
   const launchParams = useLaunchParams();
   const { user } = useUser();
   const [buyingGiftId, setBuyingGiftId] = useState<string | null>(null);
+  const [pendingOwnedScrollId, setPendingOwnedScrollId] = useState<
+    string | null
+  >(null);
 
   const {
     data: gifts = [],
@@ -59,6 +62,31 @@ export function ShopPage() {
       TelegramWebApp.offEvent('invoiceClosed', handler);
     };
   }, [queryClient]);
+
+  useEffect(() => {
+    if (!pendingOwnedScrollId) return;
+
+    const ownedGift = gifts.find(
+      (gift) => gift.id === pendingOwnedScrollId && gift.isBought,
+    );
+    if (!ownedGift) return;
+
+    const rafId = window.requestAnimationFrame(() => {
+      const element = document.querySelector(
+        `[data-owned-gift-id="${pendingOwnedScrollId}"]`,
+      ) as HTMLElement | null;
+
+      element?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setPendingOwnedScrollId(null);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [gifts, pendingOwnedScrollId]);
 
   const featuredPlan = useMemo(
     () => plans.find((plan) => plan.isRecommended) ?? plans[1] ?? plans[0],
@@ -103,7 +131,7 @@ export function ShopPage() {
     if ((user?.air ?? 0) < gift.price) {
       document.getElementById('credit-packs')?.scrollIntoView({
         behavior: 'smooth',
-        block: 'start',
+        block: 'center',
       });
       return;
     }
@@ -112,10 +140,12 @@ export function ShopPage() {
       try {
         setBuyingGiftId(gift.id);
         await buyGift(gift.id);
+        setPendingOwnedScrollId(gift.id);
         queryClient.invalidateQueries({ queryKey: ['gifts'] });
         queryClient.invalidateQueries({ queryKey: ['me'] });
       } catch (error) {
         console.error(error);
+        setPendingOwnedScrollId(null);
       } finally {
         setBuyingGiftId(null);
       }
@@ -129,6 +159,8 @@ export function ShopPage() {
       : plansErrorValue instanceof Error
         ? plansErrorValue.message
         : 'Failed to load the boutique';
+  const availableGifts = gifts.filter((gift) => !gift.isBought);
+  const ownedGifts = gifts.filter((gift) => gift.isBought);
 
   if (giftsLoading || plansLoading) {
     return <div className={s.empty}>Opening the boutique...</div>;
@@ -140,7 +172,7 @@ export function ShopPage() {
 
   return (
     <div className={s.page}>
-      <section className={s.hero}>
+      <section className={s.hero} id={'hero'}>
         <h1 className={s.title}>The Boutique</h1>
         <p className={s.description}>
           Enhance your connection with exclusive gifts, and the rarest Anyma
@@ -204,7 +236,7 @@ export function ShopPage() {
         </div>
 
         <div className={s.gifts}>
-          {gifts.map((gift) => (
+          {availableGifts.map((gift) => (
             <article key={gift.id} className={s.gift}>
               <div className={s.giftMedia}>
                 <img
@@ -236,22 +268,65 @@ export function ShopPage() {
         </div>
       </section>
 
-      <section className={s.membershipCard}>
-        <div className={s.membershipBody}>
-          <h2 className={s.membershipTitle}>Aura Infinite</h2>
-          <p className={s.membershipCopy}>
-            Unlimited intimacy points, daily free credits, and access to locked
-            story paths.
-          </p>
-          <button
-            type="button"
-            className={s.membershipButton}
-            onClick={() => navigate('/subscriptions')}
-          >
-            Unlock Membership
-          </button>
-        </div>
-      </section>
+      {ownedGifts.length > 0 ? (
+        <section className={s.section}>
+          <div className={s.sectionHeader}>
+            <h2 className={s.sectionTitle}>Owned Gifts</h2>
+            <div className={s.sectionMeta}>Collected</div>
+          </div>
+
+          <div className={s.gifts}>
+            {ownedGifts.map((gift) => (
+              <article
+                key={gift.id}
+                className={s.gift}
+                data-owned-gift-id={gift.id}
+              >
+                <div className={s.giftMedia}>
+                  <img
+                    src={gift.imgUrl}
+                    alt={gift.name}
+                    className={s.giftImage}
+                  />
+                </div>
+                <div className={s.giftBody}>
+                  <h3 className={s.giftName}>{gift.name}</h3>
+                  <p className={s.giftDescription}>{gift.description}</p>
+                  <button
+                    type="button"
+                    className={`${s.giftButton} ${s.giftOwned}`}
+                    onClick={() => handleGiftPurchase(gift)}
+                  >
+                    <span className="material-symbols-outlined filled">
+                      auto_awesome
+                    </span>
+                    Owned
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {!user?.isSubscribed && (
+        <section className={s.membershipCard}>
+          <div className={s.membershipBody}>
+            <h2 className={s.membershipTitle}>Aura Infinite</h2>
+            <p className={s.membershipCopy}>
+              Unlimited intimacy points, daily free credits, and access to
+              locked story paths.
+            </p>
+            <button
+              type="button"
+              className={s.membershipButton}
+              onClick={() => navigate('/subscriptions')}
+            >
+              Unlock Membership
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
