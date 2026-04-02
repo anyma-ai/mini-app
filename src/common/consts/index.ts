@@ -1,17 +1,22 @@
 export const PlanFeaturesA = [
-  'Unlimited texts',
   'Unlimited NSFW photos',
-  'Premium response speed',
+
   'Deep immersion mode',
   'Exclusive character drops',
   'Early Access to scenarios',
-];
-
-export const PlanFeaturesB = [
   'Standard roleplay',
   'Enhanced roleplay',
-  'Instant replies',
-  'Priority replies',
-  'Hidden scenarios',
-  'VIP badge',
+];
+
+const a = ['Unlimited chats', 'Explicit content'];
+
+const b = ['Priority replies', 'Explicit content'];
+
+const c = ['Unlimited chats', 'Instant replies', 'Explicit content'];
+
+const d = [
+  'Unlimited chats',
+  'Explicit content',
+  'Premium response speed',
+  'Premium scenarios',
 ];

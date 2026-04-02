@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
-import { TgStarWhiteIcon } from '@/assets/icons';
 import oliviaImage from '@/assets/characters/olivia.webp';
+import { TgStarWhiteIcon } from '@/assets/icons';
 import { type IPlan, PlanPeriod, PlanType } from '@/common/types';
 import { cn } from '@/common/utils';
 import { useLaunchParams } from '@/context/LaunchParamsContext';
@@ -32,26 +32,22 @@ function getSubtitle(plan: IPlan, index: number) {
 }
 
 function getFeatureList(plan: IPlan) {
-  if (plan.items?.length) {
-    return plan.items.map((item) => item.value);
-  }
-
   if (plan.period === PlanPeriod.Day) {
-    return ['Unlimited Chat Messages', 'Full HD Media Unlocks'];
+    return ['Unlimited Chats', 'Explicit Content Access'];
   }
 
   if (plan.period === PlanPeriod.Month) {
     return [
+      'Everything from above',
       'Priority Response Speed',
-      'Exclusive Custom Outfits',
-      'Voice Message Access',
+      'Deep Immersion Mode',
     ];
   }
 
   return [
-    'Everything in Premium',
-    'Lifetime status marker',
-    'Private scene drops',
+    'Everything from above',
+    'Early Access to Scenarios',
+    'Premium Scenarios',
   ];
 }
 
@@ -224,9 +220,6 @@ export function SubscriptionsPage() {
                         <TgStarWhiteIcon className={s.planPriceIcon} />
                         <div className={s.planPrice}>{plan.price}</div>
                       </div>
-                      {isRecommended ? (
-                        <div className={s.planStrike}>{plan.price + 10}</div>
-                      ) : null}
                     </div>
                   </div>
 
@@ -247,7 +240,13 @@ export function SubscriptionsPage() {
                     <div className={s.lockedPreview}>
                       <img src={oliviaImage} alt="" />
                       <div className={s.lockedOverlay}>
-                        Unlock Full Intimacy
+                        <span
+                          className={`material-symbols-outlined filled ${s.lockedIcon}`}
+                        >
+                          lock
+                        </span>
+
+                        <span>Unlock Full Intimacy</span>
                       </div>
                     </div>
                   ) : null}
@@ -283,6 +282,7 @@ export function SubscriptionsPage() {
         <div className={s.footerInner}>
           <button type="button" className={s.cta} onClick={handleCheckout}>
             Claim Access
+            <span className={`material-symbols-outlined filled`}>bolt</span>
           </button>
         </div>
       </footer>
