@@ -1,7 +1,8 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-9);
+  gap: var(--space-8);
+  padding-top: 12px;
 }
 
 .hero {
@@ -68,7 +69,7 @@
   gap: 20px;
   overflow-x: auto;
   margin: 0 calc(var(--space-6) * -1);
-  padding: 0 var(--space-6) var(--space-2);
+  padding: 0 var(--space-6) var(--space-4);
 }
 
 .pack,
@@ -138,6 +139,23 @@
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+}
+
+.packPriceRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pillIcon {
+  color: var(--color-primary);
+  font-size: 18px;
+}
+
+.packPriceIcon {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
 }
 
 .packButton {
@@ -225,7 +243,7 @@
 }
 
 .giftDescription {
-  min-height: 36px;
+  min-height: 54px;
   margin: 0;
   color: var(--color-text-muted);
   font-size: 12px;

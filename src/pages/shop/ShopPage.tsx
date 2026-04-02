@@ -6,18 +6,20 @@ import { useNavigate } from 'react-router-dom';
 import { buyGift, getGifts } from '@/api/gifts';
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
-import { PlanType, type IGift, type IPlan } from '@/common/types';
+import { TgStarWhiteIcon } from '@/assets/icons';
+import { type IGift, type IPlan, PlanType } from '@/common/types';
+import { cn } from '@/common/utils';
 import { useLaunchParams } from '@/context/LaunchParamsContext';
 import { useUser } from '@/context/UserContext';
 
 import s from './ShopPage.module.scss';
 
-function getPackMeta(plan: IPlan, index: number) {
-  if (plan.isRecommended) return 'Most Popular';
-  if (index === 0) return 'Essential';
-  if (index === 1) return 'Premier';
-  return 'Elite';
-}
+const packNames = [
+  'Quick Spark',
+  'Deepening Desire',
+  'Eternal Connection',
+  'Unlimited Flow',
+];
 
 export function ShopPage() {
   const navigate = useNavigate();
@@ -65,8 +67,20 @@ export function ShopPage() {
 
   const orderedPlans = useMemo(() => {
     if (!featuredPlan) return plans;
-    return [featuredPlan, ...plans.filter((plan) => plan.id !== featuredPlan.id)];
+    return [
+      featuredPlan,
+      ...plans.filter((plan) => plan.id !== featuredPlan.id),
+    ];
   }, [featuredPlan, plans]);
+
+  const packNameById = useMemo(() => {
+    return new Map(
+      plans.map((plan, index) => [
+        plan.id,
+        packNames[index] ?? `Aura Pack ${index + 1}`,
+      ]),
+    );
+  }, [plans]);
 
   const handlePlanPurchase = (plan: IPlan) => {
     void (async () => {
@@ -129,41 +143,43 @@ export function ShopPage() {
       <section className={s.hero}>
         <h1 className={s.title}>The Boutique</h1>
         <p className={s.description}>
-          Enhance your connection with exclusive credits, curated gifts, and the
-          rarest Aura access.
+          Enhance your connection with exclusive gifts, and the rarest Anyma
+          access.
         </p>
       </section>
 
       <section className={s.section} id="credit-packs">
         <div className={s.sectionHeader}>
-          <h2 className={s.sectionTitle}>Credit Packs</h2>
+          <h2 className={s.sectionTitle}>Aura Packs</h2>
           <div className={s.sectionMeta}>Best Value</div>
         </div>
 
         <div className={`${s.packs} app-hide-scrollbar`}>
-          {orderedPlans.map((plan, index) => {
+          {orderedPlans.map((plan) => {
             const isFeatured = plan.id === featuredPlan?.id;
 
             return (
               <article
                 key={plan.id}
                 className={isFeatured ? s.packFeatured : s.pack}
+                onClick={() => handlePlanPurchase(plan)}
               >
                 <div>
-                  <div className={s.packMeta}>{getPackMeta(plan, index)}</div>
+                  <div className={s.packMeta}>
+                    {packNameById.get(plan.id) ?? 'Aura Pack'}
+                  </div>
                   <div className={s.packAmountRow}>
                     <span className={s.packAmount}>{plan.air}</span>
-                    <span className={s.packLabel}>Credits</span>
+                    <span className={s.packLabel}>Aura</span>
                   </div>
                 </div>
 
                 <div className={s.packFooter}>
-                  <span className={s.packPrice}>{plan.price}</span>
-                  <button
-                    type="button"
-                    className={s.packButton}
-                    onClick={() => handlePlanPurchase(plan)}
-                  >
+                  <div className={s.packPriceRow}>
+                    <TgStarWhiteIcon className={s.packPriceIcon} />
+                    <span className={s.packPrice}>{plan.price}</span>
+                  </div>
+                  <button type="button" className={s.packButton}>
                     <span className="material-symbols-outlined">
                       {isFeatured ? 'payments' : 'add'}
                     </span>
@@ -177,7 +193,7 @@ export function ShopPage() {
 
       <section className={s.section}>
         <div className={s.sectionHeader}>
-          <h2 className={s.sectionTitle}>Virtual Gifts</h2>
+          <h2 className={s.sectionTitle}>Gifts</h2>
           <button
             type="button"
             className={s.sectionAction}
@@ -191,7 +207,11 @@ export function ShopPage() {
           {gifts.map((gift) => (
             <article key={gift.id} className={s.gift}>
               <div className={s.giftMedia}>
-                <img src={gift.imgUrl} alt={gift.name} className={s.giftImage} />
+                <img
+                  src={gift.imgUrl}
+                  alt={gift.name}
+                  className={s.giftImage}
+                />
               </div>
               <div className={s.giftBody}>
                 <h3 className={s.giftName}>{gift.name}</h3>
@@ -201,7 +221,13 @@ export function ShopPage() {
                   className={`${s.giftButton} ${gift.isBought ? s.giftOwned : ''}`}
                   onClick={() => handleGiftPurchase(gift)}
                 >
-                  <span className="material-symbols-outlined filled">auto_awesome</span>
+                  <span
+                    className={cn('material-symbols-outlined filled', [
+                      s.pillIcon,
+                    ])}
+                  >
+                    auto_awesome
+                  </span>
                   {gift.isBought ? 'Owned' : `${gift.price}`}
                 </button>
               </div>

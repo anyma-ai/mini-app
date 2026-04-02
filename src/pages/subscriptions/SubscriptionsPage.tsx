@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
+import { TgStarWhiteIcon } from '@/assets/icons';
 import oliviaImage from '@/assets/characters/olivia.webp';
-import { PlanPeriod, PlanType, type IPlan } from '@/common/types';
+import { type IPlan, PlanPeriod, PlanType } from '@/common/types';
+import { cn } from '@/common/utils';
 import { useLaunchParams } from '@/context/LaunchParamsContext';
 import { useUser } from '@/context/UserContext';
 
@@ -46,7 +48,11 @@ function getFeatureList(plan: IPlan) {
     ];
   }
 
-  return ['Everything in Premium', 'Lifetime status marker', 'Private scene drops'];
+  return [
+    'Everything in Premium',
+    'Lifetime status marker',
+    'Private scene drops',
+  ];
 }
 
 function getRemainingLabel(subscribedUntil?: string | null) {
@@ -104,6 +110,25 @@ export function SubscriptionsPage() {
     };
   }, [queryClient]);
 
+  useEffect(() => {
+    if (!selectedId) return;
+
+    const rafId = window.requestAnimationFrame(() => {
+      const element = document.querySelector(
+        `[data-plan-id="${selectedId}"]`,
+      ) as HTMLElement | null;
+
+      element?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth',
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [selectedId]);
+
   const selectedPlan = useMemo(
     () => plans.find((plan) => plan.id === selectedId) ?? plans[0],
     [plans, selectedId],
@@ -116,7 +141,10 @@ export function SubscriptionsPage() {
 
     void (async () => {
       try {
-        const invoiceLink = await createPlanInvoice(selectedPlan.id, launchParams);
+        const invoiceLink = await createPlanInvoice(
+          selectedPlan.id,
+          launchParams,
+        );
         TelegramWebApp.openInvoice(invoiceLink, (status) => {
           if (status === 'paid') {
             queryClient.invalidateQueries({ queryKey: ['me'] });
@@ -135,7 +163,9 @@ export function SubscriptionsPage() {
   if (isError) {
     return (
       <div className={s.empty}>
-        {error instanceof Error ? error.message : 'Failed to load subscriptions'}
+        {error instanceof Error
+          ? error.message
+          : 'Failed to load subscriptions'}
       </div>
     );
   }
@@ -144,15 +174,17 @@ export function SubscriptionsPage() {
     <>
       <div className={s.page}>
         <section className={s.hero}>
-          {remainingLabel ? <div className={s.status}>{remainingLabel}</div> : null}
+          {remainingLabel ? (
+            <div className={s.status}>{remainingLabel}</div>
+          ) : null}
           <h1 className={s.title}>
             Elevate Your
             <br />
             <span className={s.titleAccent}>Digital Aura</span>
           </h1>
           <p className={s.description}>
-            Unlock exclusive content, faster responses, and intimate high-fidelity
-            moments.
+            Unlock exclusive content, faster responses, and intimate
+            high-fidelity moments.
           </p>
         </section>
 
@@ -162,73 +194,89 @@ export function SubscriptionsPage() {
             const isSelected = plan.id === selectedPlan?.id;
 
             return (
-              <button
+              <div
                 key={plan.id}
-                type="button"
-                className={`${isRecommended ? s.planFeatured : s.plan} ${
-                  isSelected ? s.planActive : ''
-                }`}
-                onClick={() => setSelectedId(plan.id)}
+                className={cn(s.planWrap, [], {
+                  [s.planWrapFeatured]: isRecommended,
+                })}
               >
                 {isRecommended ? (
                   <span className={s.featuredBadge}>Most Popular</span>
                 ) : null}
-                <div className={s.planHead}>
-                  <div>
-                    <h2 className={s.planTitle}>{formatTitle(plan)}</h2>
-                    <div className={s.planSubtitle}>{getSubtitle(plan, index)}</div>
-                  </div>
-                  <div>
-                    <div className={s.planPrice}>{plan.price}</div>
-                    {isRecommended ? (
-                      <div className={s.planStrike}>{plan.price + 10}</div>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className={s.featureList}>
-                  {getFeatureList(plan).map((feature) => (
-                    <div key={feature} className={s.feature}>
-                      <span
-                        className={`material-symbols-outlined filled ${s.featureIcon}`}
-                      >
-                        verified
-                      </span>
-                      <span>{feature}</span>
+                <button
+                  type="button"
+                  className={cn(isRecommended ? s.planFeatured : s.plan, [], {
+                    [s.planSelected]: isSelected,
+                  })}
+                  data-plan-id={plan.id}
+                  onClick={() => setSelectedId(plan.id)}
+                  aria-pressed={isSelected}
+                >
+                  <div className={s.planHead}>
+                    <div>
+                      <h2 className={s.planTitle}>{formatTitle(plan)}</h2>
+                      <div className={s.planSubtitle}>
+                        {getSubtitle(plan, index)}
+                      </div>
                     </div>
-                  ))}
-                </div>
-
-                {isRecommended ? (
-                  <div className={s.lockedPreview}>
-                    <img
-                      src={oliviaImage}
-                      alt=""
-                    />
-                    <div className={s.lockedOverlay}>Unlock Full Intimacy</div>
+                    <div>
+                      <div className={s.planPriceRow}>
+                        <TgStarWhiteIcon className={s.planPriceIcon} />
+                        <div className={s.planPrice}>{plan.price}</div>
+                      </div>
+                      {isRecommended ? (
+                        <div className={s.planStrike}>{plan.price + 10}</div>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
-              </button>
+
+                  <div className={s.featureList}>
+                    {getFeatureList(plan).map((feature) => (
+                      <div key={feature} className={s.feature}>
+                        <span
+                          className={`material-symbols-outlined filled ${s.featureIcon}`}
+                        >
+                          verified
+                        </span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {isRecommended ? (
+                    <div className={s.lockedPreview}>
+                      <img src={oliviaImage} alt="" />
+                      <div className={s.lockedOverlay}>
+                        Unlock Full Intimacy
+                      </div>
+                    </div>
+                  ) : null}
+                </button>
+              </div>
             );
           })}
         </div>
 
-        <section className={s.trust}>
-          <div className={s.trustItem}>
-            <span className={`material-symbols-outlined ${s.trustIcon}`}>lock</span>
-            <span>Secure</span>
-          </div>
-          <div className={s.trustItem}>
-            <span className={`material-symbols-outlined ${s.trustIcon}`}>speed</span>
-            <span>Instant</span>
-          </div>
-          <div className={s.trustItem}>
-            <span className={`material-symbols-outlined ${s.trustIcon}`}>
-              workspace_premium
-            </span>
-            <span>Premium</span>
-          </div>
-        </section>
+        {/*<section className={s.trust}>*/}
+        {/*  <div className={s.trustItem}>*/}
+        {/*    <span className={`material-symbols-outlined ${s.trustIcon}`}>*/}
+        {/*      lock*/}
+        {/*    </span>*/}
+        {/*    <span>Secure</span>*/}
+        {/*  </div>*/}
+        {/*  <div className={s.trustItem}>*/}
+        {/*    <span className={`material-symbols-outlined ${s.trustIcon}`}>*/}
+        {/*      speed*/}
+        {/*    </span>*/}
+        {/*    <span>Instant</span>*/}
+        {/*  </div>*/}
+        {/*  <div className={s.trustItem}>*/}
+        {/*    <span className={`material-symbols-outlined ${s.trustIcon}`}>*/}
+        {/*      workspace_premium*/}
+        {/*    </span>*/}
+        {/*    <span>Premium</span>*/}
+        {/*  </div>*/}
+        {/*</section>*/}
       </div>
 
       <footer className={s.footer}>
@@ -236,10 +284,6 @@ export function SubscriptionsPage() {
           <button type="button" className={s.cta} onClick={handleCheckout}>
             Claim Access
           </button>
-          <p className={s.footerNote}>
-            Subscription automatically renews unless cancelled 24h prior. By
-            continuing, you agree to our Terms of Intimacy.
-          </p>
         </div>
       </footer>
     </>

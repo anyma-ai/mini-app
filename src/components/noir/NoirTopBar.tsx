@@ -19,7 +19,7 @@ export function NoirTopBar({
   title,
   avatarSrc,
   credits = 0,
-  creditsLabel = 'Credits',
+  creditsLabel = 'Aura',
   onCreditsClick,
   onBack,
 }: NoirTopBarProps) {
@@ -43,7 +43,9 @@ export function NoirTopBar({
     return (
       <header className={s.bar}>
         <button type="button" className={s.backButton} onClick={handleBack}>
-          <span className={cn('material-symbols-outlined filled', [s.backIcon])}>
+          <span
+            className={cn('material-symbols-outlined filled', [s.backIcon])}
+          >
             arrow_back_ios_new
           </span>
         </button>
@@ -57,7 +59,9 @@ export function NoirTopBar({
     <header className={s.bar}>
       <div className={s.brand}>
         <div className={s.avatarWrap}>
-          {avatarSrc ? <img src={avatarSrc} alt="" className={s.avatar} /> : null}
+          {avatarSrc ? (
+            <img src={avatarSrc} alt="" className={s.avatar} />
+          ) : null}
         </div>
         <div className={s.wordmark}>Anyma</div>
       </div>
