@@ -1,0 +1,66 @@
+.dock {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  width: min(100%, var(--page-max-width));
+  padding: 12px var(--space-5) calc(var(--safe-bottom) + 18px);
+  transform: translateX(-50%);
+  background: rgba(31, 31, 38, 0.6);
+  backdrop-filter: blur(24px);
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  box-shadow: 0 -10px 40px rgba(255, 137, 171, 0.12);
+}
+
+.item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  transition:
+    color var(--transition-base),
+    transform var(--transition-base);
+}
+
+.item:active {
+  transform: scale(0.94);
+}
+
+.active {
+  color: var(--color-primary-foreground);
+}
+
+.itemIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  font-size: 22px;
+}
+
+.activeIcon {
+  background: var(--gradient-primary);
+  box-shadow: 0 0 16px rgba(255, 137, 171, 0.4);
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.labelHidden {
+  opacity: 0;
+}

@@ -1,89 +1,85 @@
-import { useState } from 'react';
+import TelegramWebApp from '@twa-dev/sdk';
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { PlusIcon } from '@/assets/icons';
-import airIcon from '@/assets/mini/air.png';
-import bagIcon from '@/assets/mini/bag.png';
-import fuelIcon from '@/assets/mini/fuel.png';
-import giftsIcon from '@/assets/mini/gifts.png';
-import girlsIcon from '@/assets/mini/girls.png';
+import oliviaImage from '@/assets/characters/olivia.webp';
 import {
-  BackNavigation,
-  BagNavigation,
-  Header,
-  MiniAppShell,
-  Navigation,
-} from '@/components';
+  NoirBottomDock,
+  type NoirDockItem,
+  NoirTopBar,
+} from '@/components/noir';
 import { useUser } from '@/context/UserContext';
 
-const pageTitleMap: Record<string, string> = {
-  '/girls': 'Girls',
-  '/gifts': 'Gifts',
-  '/bag': 'Bag',
-  '/store': 'Store',
-};
+import s from './MiniAppLayout.module.scss';
+
+const dockItems: NoirDockItem[] = [
+  { label: 'Explore', path: '/explore', icon: 'explore' },
+  { label: 'Magic', path: '/magic', icon: 'auto_awesome' },
+  { label: 'Shop', path: '/shop', icon: 'redeem' },
+  { label: 'Profile', path: '/profile', icon: 'person' },
+];
 
 export function MiniAppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useUser();
-  const [bagUpgradeAction, setBagUpgradeAction] = useState<(() => void) | null>(
-    null,
-  );
-  const isGirlDetails = location.pathname.startsWith('/girls/');
-  const isBagPage = location.pathname === '/bag';
-  const isStorePage = location.pathname === '/store';
 
-  const pageName = pageTitleMap[location.pathname] ?? 'Girls';
-  const appClassName = pageName;
+  useEffect(() => {
+    const setVh = () => {
+      const viewportHeight = TelegramWebApp.viewportHeight;
+      const height =
+        typeof viewportHeight === 'number' && viewportHeight > 0
+          ? viewportHeight
+          : window.innerHeight;
+
+      document.documentElement.style.setProperty('--vh', `${height * 0.01}px`);
+    };
+
+    TelegramWebApp.expand();
+    setVh();
+    window.addEventListener('resize', setVh);
+    TelegramWebApp.onEvent('viewportChanged', setVh);
+
+    return () => {
+      window.removeEventListener('resize', setVh);
+      TelegramWebApp.offEvent('viewportChanged', setVh);
+    };
+  }, []);
+
+  const pathname = location.pathname;
+  const isSubscriptions = pathname === '/subscriptions';
+  const isCompanion =
+    pathname.startsWith('/companions/') || pathname.startsWith('/girls/');
+  const showDock = !isSubscriptions && !isCompanion;
+  const activeDockPath =
+    dockItems.find(
+      (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
+    )?.path ?? '/explore';
 
   return (
-    <MiniAppShell
-      appClassName={appClassName}
-      header={
-        <Header
-          fuel={user?.fuel ?? 0}
-          air={user?.air ?? 0}
-          fuelIcon={fuelIcon}
-          airIcon={airIcon}
-          actionIcon={<PlusIcon />}
-          onActionClick={() => navigate('/store')}
-        />
-      }
-      footer={
-        isGirlDetails || isStorePage ? (
-          <BackNavigation
-            onBack={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-                return;
-              }
-              navigate('/girls');
-            }}
-          />
-        ) : isBagPage ? (
-          <BagNavigation
-            onBack={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-                return;
-              }
-              navigate('/girls');
-            }}
-            onUpgrade={() => bagUpgradeAction?.()}
-          />
+    <div className={s.viewport}>
+      <div className={s.shell}>
+        <div className={s.ambient} />
+        {isSubscriptions ? (
+          <NoirTopBar mode="back" title="Upgrade Aura" />
+        ) : isCompanion ? (
+          <NoirTopBar mode="back" title="Private Aura" />
         ) : (
-          <Navigation
-            items={[
-              { label: 'Gifts', path: '/gifts', icon: giftsIcon },
-              { label: 'Girls', path: '/girls', icon: girlsIcon },
-              { label: 'Bag', path: '/bag', icon: bagIcon },
-            ]}
+          <NoirTopBar
+            avatarSrc={oliviaImage}
+            credits={user?.air ?? 0}
+            onCreditsClick={() => navigate('/shop')}
           />
-        )
-      }
-    >
-      <Outlet context={{ setBagUpgradeAction }} />
-    </MiniAppShell>
+        )}
+
+        <main className={`${s.content} ${showDock ? '' : s.focused}`}>
+          <Outlet />
+        </main>
+
+        {showDock ? (
+          <NoirBottomDock items={dockItems} activePath={activeDockPath} />
+        ) : null}
+      </div>
+    </div>
   );
 }
