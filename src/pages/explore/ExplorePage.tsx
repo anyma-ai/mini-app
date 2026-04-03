@@ -16,6 +16,8 @@ const moods = ['Caring', 'Spicy', 'Playful', 'Intellectual'] as const;
 const filterIds = ['All', ...moods] as const;
 const PHOTO_STORY_DURATION_MS = 5_000;
 const HOLD_THRESHOLD_MS = 180;
+const SWIPE_THRESHOLD_PX = 48;
+const SWIPE_CANCEL_HOLD_THRESHOLD_PX = 12;
 
 function getMood(character: ICharacter) {
   const score = [...character.name].reduce(
@@ -46,7 +48,8 @@ type StoryViewerOverlayProps = {
   group: StoryGroup;
   storyIndex: number;
   currentStory: IStory;
-  onNavigate: (direction: 'next' | 'previous') => void;
+  onNavigateStory: (direction: 'next' | 'previous') => void;
+  onNavigateGroup: (direction: 'next' | 'previous') => void;
   onClose: () => void;
 };
 
@@ -83,7 +86,8 @@ function StoryViewerOverlay({
   group,
   storyIndex,
   currentStory,
-  onNavigate,
+  onNavigateStory,
+  onNavigateGroup,
   onClose,
 }: StoryViewerOverlayProps) {
   const [activeProgress, setActiveProgress] = useState(0);
@@ -95,6 +99,7 @@ function StoryViewerOverlay({
   const photoLastTickRef = useRef<number | null>(null);
   const holdStartAtRef = useRef<number | null>(null);
   const holdStartXRef = useRef<number | null>(null);
+  const holdStartYRef = useRef<number | null>(null);
   const holdTimeoutRef = useRef<number | null>(null);
   const gestureLayerRef = useRef<HTMLDivElement | null>(null);
   const pointerIdRef = useRef<number | null>(null);
@@ -155,7 +160,7 @@ function StoryViewerOverlay({
         setActiveProgress(nextProgress);
 
         if (nextProgress >= 1) {
-          onNavigate('next');
+          onNavigateStory('next');
           return;
         }
       }
@@ -171,7 +176,7 @@ function StoryViewerOverlay({
         photoProgressRafRef.current = null;
       }
     };
-  }, [currentStory.id, currentStory.type, isPaused, onNavigate]);
+  }, [currentStory.id, currentStory.type, isPaused, onNavigateStory]);
 
   useEffect(() => {
     if (currentStory.type !== StoryType.Video || !videoRef.current) return;
@@ -211,7 +216,7 @@ function StoryViewerOverlay({
     const handleEnded = () => {
       syncVideoProgress();
       cancelVideoProgress();
-      onNavigate('next');
+      onNavigateGroup('next');
     };
 
     const handleLoadedMetadata = () => {
@@ -257,7 +262,7 @@ function StoryViewerOverlay({
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
     };
-  }, [currentStory.id, currentStory.type, isPaused, onNavigate]);
+  }, [currentStory.id, currentStory.type, isPaused, onNavigateGroup]);
 
   useEffect(() => {
     if (currentStory.type !== StoryType.Video || !videoRef.current) return;
@@ -278,6 +283,7 @@ function StoryViewerOverlay({
 
     holdStartAtRef.current = null;
     holdStartXRef.current = null;
+    holdStartYRef.current = null;
     pointerIdRef.current = null;
   };
 
@@ -288,10 +294,31 @@ function StoryViewerOverlay({
     event.currentTarget.setPointerCapture(event.pointerId);
     holdStartAtRef.current = Date.now();
     holdStartXRef.current = event.clientX;
+    holdStartYRef.current = event.clientY;
 
     holdTimeoutRef.current = window.setTimeout(() => {
       setIsPaused(true);
     }, HOLD_THRESHOLD_MS);
+  };
+
+  const handleStoryGestureMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerIdRef.current !== event.pointerId) return;
+
+    const startX = holdStartXRef.current;
+    const startY = holdStartYRef.current;
+    if (startX == null || startY == null) return;
+
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
+
+    if (
+      holdTimeoutRef.current != null &&
+      Math.abs(deltaX) > SWIPE_CANCEL_HOLD_THRESHOLD_PX &&
+      Math.abs(deltaX) > Math.abs(deltaY)
+    ) {
+      window.clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
+    }
   };
 
   const handleStoryGestureEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -301,7 +328,10 @@ function StoryViewerOverlay({
 
     const pressStartedAt = holdStartAtRef.current;
     const startX = holdStartXRef.current;
+    const startY = holdStartYRef.current;
     const wasPaused = isPaused;
+    const endX = event.clientX;
+    const endY = event.clientY;
 
     resetGesture();
 
@@ -312,13 +342,24 @@ function StoryViewerOverlay({
     if (pressStartedAt == null || startX == null) return;
 
     const durationMs = Date.now() - pressStartedAt;
+    const deltaX = endX - startX;
+    const deltaY = startY == null ? 0 : endY - startY;
+
+    if (
+      Math.abs(deltaX) >= SWIPE_THRESHOLD_PX &&
+      Math.abs(deltaX) > Math.abs(deltaY)
+    ) {
+      onNavigateGroup(deltaX < 0 ? 'next' : 'previous');
+      return;
+    }
+
     if (durationMs < HOLD_THRESHOLD_MS) {
       const bounds = gestureLayerRef.current?.getBoundingClientRect();
       if (!bounds) return;
 
       const relativeX = startX - bounds.left;
       const direction = relativeX < bounds.width / 2 ? 'previous' : 'next';
-      onNavigate(direction);
+      onNavigateStory(direction);
       return;
     }
   };
@@ -398,6 +439,7 @@ function StoryViewerOverlay({
         ref={gestureLayerRef}
         className={s.storyGestureLayer}
         onPointerDown={handleStoryGestureStart}
+        onPointerMove={handleStoryGestureMove}
         onPointerUp={handleStoryGestureEnd}
         onPointerCancel={handleStoryGestureCancel}
       />
@@ -577,6 +619,27 @@ export function ExplorePage() {
       return {
         characterId: previousGroup.characterId,
         storyIndex: previousGroup.stories.length - 1,
+      };
+    });
+  }, []);
+
+  const moveStoryGroup = useCallback((direction: 'next' | 'previous') => {
+    setStoryViewer((current) => {
+      if (!current) return current;
+
+      const groups = storyGroupsRef.current;
+      const groupIndex = groups.findIndex(
+        (group) => group.characterId === current.characterId,
+      );
+      if (groupIndex < 0) return current;
+
+      const targetGroup =
+        direction === 'next' ? groups[groupIndex + 1] : groups[groupIndex - 1];
+      if (!targetGroup) return current;
+
+      return {
+        characterId: targetGroup.characterId,
+        storyIndex: 0,
       };
     });
   }, []);
@@ -808,7 +871,8 @@ export function ExplorePage() {
                 group={currentGroup}
                 storyIndex={storyViewer.storyIndex}
                 currentStory={currentStory}
-                onNavigate={moveStory}
+                onNavigateStory={moveStory}
+                onNavigateGroup={moveStoryGroup}
                 onClose={() => setStoryViewer(null)}
               />
             </div>,
