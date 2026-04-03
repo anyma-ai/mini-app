@@ -1,7 +1,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-6);
 }
 
 .storiesSection {
@@ -325,4 +325,140 @@
   border: 1px solid var(--color-outline);
   color: var(--color-text-muted);
   text-align: center;
+}
+
+.storyViewer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.storyViewerBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 6, 9, 0.92);
+}
+
+.storyViewerContent {
+  position: relative;
+  display: flex;
+  width: min(100%, var(--page-max-width));
+  height: 100%;
+  margin: 0 auto;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.storyViewerContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 180px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.62) 0%,
+    rgba(0, 0, 0, 0.28) 48%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.storyProgress {
+  position: absolute;
+  top: calc(var(--safe-top) + 12px);
+  left: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.storyProgressTrack {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.storyProgressFill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.9);
+  transition: width 80ms linear;
+}
+
+.storyProgressSeen {
+  width: 100%;
+}
+
+.storyViewerHeader {
+  position: absolute;
+  top: calc(var(--safe-top) + 28px);
+  left: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.storyViewerMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.storyViewerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+}
+
+.storyViewerName {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.storyViewerClose {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+
+.storyMedia {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.storyMediaAsset {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storyGestureLayer {
+  position: absolute;
+  top: calc(var(--safe-top) + 76px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  touch-action: none;
 }

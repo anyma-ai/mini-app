@@ -8,15 +8,10 @@ export const PlanFeaturesA = [
   'Enhanced roleplay',
 ];
 
-const a = ['Unlimited chats', 'Explicit content'];
-
-const b = ['Priority replies', 'Explicit content'];
-
-const c = ['Unlimited chats', 'Instant replies', 'Explicit content'];
-
-const d = [
-  'Unlimited chats',
-  'Explicit content',
-  'Premium response speed',
-  'Premium scenarios',
+export const PlanFeaturesB = [
+  'Unlimited voice replies',
+  'Priority response speed',
+  'Exclusive outfits',
+  'Premium story access',
+  'Daily aura rewards',
 ];

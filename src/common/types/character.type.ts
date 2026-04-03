@@ -21,3 +21,16 @@ export interface IScenario {
   isNew: boolean;
   createdAt: string;
 }
+
+export enum StoryType {
+  Photo = 'photo',
+  Video = 'video',
+}
+
+export interface IStory {
+  id: string;
+  type: StoryType;
+  fileUrl: string;
+  idx: number;
+  characterId: string;
+}
