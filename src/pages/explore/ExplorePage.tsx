@@ -1,11 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
-import { getStories, markStorySeen, type IStoriesResponse } from '@/api/stories';
+import {
+  getStories,
+  type IStoriesResponse,
+  markStorySeen,
+} from '@/api/stories';
 import type { ICharacter, IStory } from '@/common/types';
 import { StoryType } from '@/common/types';
 import { cn } from '@/common/utils';
@@ -30,6 +41,24 @@ function getMood(character: ICharacter) {
 
 function getCardImage(character: ICharacter) {
   return character.promoImgUrl ?? character.avatarUrl;
+}
+
+function getCharacterEyebrow(character: ICharacter) {
+  if (character.scenarios.some((scenario) => scenario.isNew)) {
+    return {
+      label: 'New',
+      className: 'new',
+    } as const;
+  }
+
+  if (character.isFeatured) {
+    return {
+      label: 'Trending',
+      className: 'trending',
+    } as const;
+  }
+
+  return null;
 }
 
 type StoryGroup = {
@@ -287,7 +316,9 @@ function StoryViewerOverlay({
     pointerIdRef.current = null;
   };
 
-  const handleStoryGestureStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+  const handleStoryGestureStart = (
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
     if (pointerIdRef.current != null) return;
 
     pointerIdRef.current = event.pointerId;
@@ -364,7 +395,9 @@ function StoryViewerOverlay({
     }
   };
 
-  const handleStoryGestureCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+  const handleStoryGestureCancel = (
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
     if (pointerIdRef.current !== event.pointerId) return;
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -383,7 +416,8 @@ function StoryViewerOverlay({
     <div className={s.storyViewerContent}>
       <div className={s.storyProgress}>
         {group.stories.map((story, index) => {
-          const progress = index < storyIndex ? 1 : index === storyIndex ? activeProgress : 0;
+          const progress =
+            index < storyIndex ? 1 : index === storyIndex ? activeProgress : 0;
 
           return (
             <span key={story.id} className={s.storyProgressTrack}>
@@ -451,7 +485,8 @@ export function ExplorePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<(typeof filterIds)[number]>('All');
+  const [activeFilter, setActiveFilter] =
+    useState<(typeof filterIds)[number]>('All');
   const [storyViewer, setStoryViewer] = useState<StoryViewerState>(null);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const pendingSeenIdsRef = useRef(new Set<string>());
@@ -514,8 +549,9 @@ export function ExplorePage() {
   const currentGroup = useMemo(() => {
     if (!storyViewer) return null;
     return (
-      storyGroups.find((group) => group.characterId === storyViewer.characterId) ??
-      null
+      storyGroups.find(
+        (group) => group.characterId === storyViewer.characterId,
+      ) ?? null
     );
   }, [storyGroups, storyViewer]);
 
@@ -553,7 +589,8 @@ export function ExplorePage() {
         .join(' ')
         .toLowerCase();
 
-      const matchesQuery = deferredQuery.length === 0 || searchHaystack.includes(deferredQuery);
+      const matchesQuery =
+        deferredQuery.length === 0 || searchHaystack.includes(deferredQuery);
       const matchesFilter =
         activeFilter === 'All' ? true : getMood(girl) === activeFilter;
 
@@ -561,8 +598,12 @@ export function ExplorePage() {
     });
   }, [activeFilter, deferredQuery, girls]);
 
-  const heroGirl = filteredGirls[0];
-  const gridGirls = heroGirl ? filteredGirls.slice(1) : filteredGirls;
+  const heroGirl =
+    filteredGirls.find((girl) => girl.isFeatured) ?? filteredGirls[0];
+  const gridGirls = heroGirl
+    ? filteredGirls.filter((girl) => girl.id !== heroGirl.id)
+    : filteredGirls;
+  const heroEyebrow = heroGirl ? getCharacterEyebrow(heroGirl) : null;
 
   const openCompanion = (girlId: string) => {
     navigate(`/companions/${girlId}`);
@@ -774,7 +815,9 @@ export function ExplorePage() {
 
       <section className={s.filters}>
         <label className={s.search}>
-          <span className={`material-symbols-outlined ${s.searchIcon}`}>search</span>
+          <span className={`material-symbols-outlined ${s.searchIcon}`}>
+            search
+          </span>
           <input
             type="text"
             value={query}
@@ -789,7 +832,9 @@ export function ExplorePage() {
             <button
               key={filterId}
               type="button"
-              className={cn(s.chip, [], { [s.chipActive]: filterId === activeFilter })}
+              className={cn(s.chip, [], {
+                [s.chipActive]: filterId === activeFilter,
+              })}
               onClick={() => setActiveFilter(filterId)}
             >
               {filterId}
@@ -808,13 +853,27 @@ export function ExplorePage() {
               className={s.heroCard}
               onClick={() => openCompanion(heroGirl.id)}
             >
-              <img src={getCardImage(heroGirl)} alt={heroGirl.name} className={s.cardImage} />
+              <img
+                src={getCardImage(heroGirl)}
+                alt={heroGirl.name}
+                className={s.cardImage}
+              />
               <div className={s.cardOverlay} />
               <div className={s.cardBody}>
-                <span className={s.eyebrow}>New Aura</span>
+                {heroEyebrow ? (
+                  <span
+                    className={cn(s.eyebrow, [], {
+                      [s.eyebrowTrending]: heroEyebrow.className === 'trending',
+                    })}
+                  >
+                    {heroEyebrow.label}
+                  </span>
+                ) : null}
                 <div className={s.heroFooter}>
                   <div className={s.info}>
-                    <h2 className={`${s.cardTitle} ${s.heroTitle}`}>{heroGirl.name}</h2>
+                    <h2 className={`${s.cardTitle} ${s.heroTitle}`}>
+                      {heroGirl.name}
+                    </h2>
                     <p className={s.cardDescription}>{heroGirl.description}</p>
                   </div>
                   <span className={s.primaryAction}>Chat</span>
@@ -823,18 +882,19 @@ export function ExplorePage() {
             </button>
           ) : null}
 
-          {gridGirls.map((girl, index) => {
-            const isWide = index > 1 && index % 3 === 2;
-            const cardClassName = isWide ? s.wideTile : s.tile;
-
+          {gridGirls.map((girl) => {
             return (
               <button
                 key={girl.id}
                 type="button"
-                className={cardClassName}
+                className={s.tile}
                 onClick={() => openCompanion(girl.id)}
               >
-                <img src={getCardImage(girl)} alt={girl.name} className={s.cardImage} />
+                <img
+                  src={getCardImage(girl)}
+                  alt={girl.name}
+                  className={s.cardImage}
+                />
                 <div className={s.cardOverlay} />
                 <div className={s.cardBody}>
                   <div className={s.tileFooter}>
@@ -842,18 +902,7 @@ export function ExplorePage() {
                       <h3 className={s.cardTitle}>{girl.name}</h3>
                       <div className={s.mood}>{getMood(girl)}</div>
                     </div>
-                    {isWide ? (
-                      <div className={s.heroFooter}>
-                        <p className={s.cardDescription}>{girl.description}</p>
-                        <span className={s.iconAction}>
-                          <span className={`material-symbols-outlined filled ${s.iconGlyph}`}>
-                            auto_awesome
-                          </span>
-                        </span>
-                      </div>
-                    ) : (
-                      <span className={s.secondaryAction}>View Aura</span>
-                    )}
+                    <span className={s.secondaryAction}>Chat Now</span>
                   </div>
                 </div>
               </button>
