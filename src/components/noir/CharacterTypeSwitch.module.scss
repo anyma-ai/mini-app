@@ -1,0 +1,51 @@
+.switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(31, 31, 38, 0.74);
+  border: 1px solid rgba(118, 116, 123, 0.24);
+  backdrop-filter: blur(18px);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border-radius: calc(var(--radius-pill) - 6px);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    transform var(--transition-base),
+    color var(--transition-base),
+    background-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.option:active {
+  transform: scale(0.98);
+}
+
+.optionActive {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 137, 171, 0.22),
+    rgba(187, 131, 255, 0.24)
+  );
+  color: var(--color-text);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 24px rgba(255, 137, 171, 0.12);
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.label {
+  letter-spacing: 0.01em;
+}

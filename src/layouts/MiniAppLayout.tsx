@@ -63,7 +63,7 @@ export function MiniAppLayout() {
         {isSubscriptions ? (
           <NoirTopBar mode="back" title="Upgrade Aura" />
         ) : isCompanion ? (
-          <NoirTopBar mode="back" title="Private Aura" />
+          <NoirTopBar mode="back" title="Scenarios" />
         ) : (
           <NoirTopBar
             avatarSrc={oliviaImage}

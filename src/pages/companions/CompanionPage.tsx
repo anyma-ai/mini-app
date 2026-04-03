@@ -23,7 +23,7 @@ export function CompanionPage() {
     error,
   } = useQuery({
     queryKey: ['girls'],
-    queryFn: getGirls,
+    queryFn: () => getGirls(),
   });
 
   const companion = useMemo(
@@ -80,7 +80,7 @@ export function CompanionPage() {
         />
         <div className={s.heroOverlay} />
         <div className={s.heroBody}>
-          <span className={s.badge}>Private Aura</span>
+          <span className={s.badge}>Scenarios</span>
           <div>
             <h1 className={s.name}>{companion.name}</h1>
             <p className={s.description}>{companion.description}</p>

@@ -19,7 +19,7 @@ export function GirlPage() {
     error,
   } = useQuery({
     queryKey: ['girls'],
-    queryFn: getGirls,
+    queryFn: () => getGirls(),
   });
 
   const girl = useMemo(

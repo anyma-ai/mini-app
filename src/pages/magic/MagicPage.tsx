@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
+import { CharacterTypeSwitch } from '@/components/noir';
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import type { IScenario } from '@/common/types';
 import { cn } from '@/common/utils';
 
@@ -16,14 +18,15 @@ function parseDate(value: string) {
 
 export function MagicPage() {
   const navigate = useNavigate();
+  const { characterType, setCharacterType } = useCharacterTypeParam();
   const {
     data: girls = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ['girls'],
-    queryFn: getGirls,
+    queryKey: ['girls', characterType],
+    queryFn: () => getGirls(characterType),
   });
 
   const scenarioEntries = useMemo(() => {
@@ -84,6 +87,12 @@ export function MagicPage() {
           the story you enter next.
         </p>
       </section>
+
+      <CharacterTypeSwitch
+        value={characterType}
+        onChange={setCharacterType}
+        className={s.typeSwitch}
+      />
 
       <div className={s.stack}>
         {activeEntries.slice(0, 3).map(({ scenario }) => (

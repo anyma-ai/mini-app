@@ -7,6 +7,12 @@ export interface ICharacter {
   emoji: string;
   isFeatured: boolean;
   scenarios: IScenario[];
+  type: CharacterType;
+}
+
+export enum CharacterType {
+  Realistic = 'realistic',
+  Anime = 'anime',
 }
 
 export interface IScenario {

@@ -17,9 +17,10 @@ import {
   type IStoriesResponse,
   markStorySeen,
 } from '@/api/stories';
-import type { ICharacter, IStory } from '@/common/types';
-import { StoryType } from '@/common/types';
+import { type ICharacter, type IStory, StoryType } from '@/common/types';
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import { cn } from '@/common/utils';
+import { CharacterTypeSwitch } from '@/components/noir';
 
 import s from './ExplorePage.module.scss';
 
@@ -484,6 +485,7 @@ function StoryViewerOverlay({
 export function ExplorePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { characterType, setCharacterType } = useCharacterTypeParam();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] =
     useState<(typeof filterIds)[number]>('All');
@@ -498,8 +500,8 @@ export function ExplorePage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['girls'],
-    queryFn: getGirls,
+    queryKey: ['girls', characterType],
+    queryFn: () => getGirls(characterType),
     select: (data) => [...data].sort((a, b) => a.name.localeCompare(b.name)),
   });
 
@@ -812,6 +814,12 @@ export function ExplorePage() {
           </div>
         </section>
       ) : null}
+
+      <CharacterTypeSwitch
+        value={characterType}
+        onChange={setCharacterType}
+        className={s.typeSwitch}
+      />
 
       <section className={s.filters}>
         <label className={s.search}>

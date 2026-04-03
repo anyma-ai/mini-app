@@ -30,7 +30,7 @@ export function GirlsPage() {
     error,
   } = useQuery({
     queryKey: ['girls'],
-    queryFn: getGirls,
+    queryFn: () => getGirls(),
     select: (data) => [...data].sort((a, b) => a.name.localeCompare(b.name)),
   });
 
