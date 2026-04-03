@@ -7,4 +7,5 @@ export interface IUser {
   isSubscribed: boolean;
   languageCode: string;
   subscribedUntil?: string | null;
+  createdAt: string;
 }
