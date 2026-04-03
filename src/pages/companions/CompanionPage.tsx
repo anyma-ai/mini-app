@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import type { IScenario } from '@/common/types';
 
 import s from './CompanionPage.module.scss';
@@ -15,6 +16,7 @@ function parseDate(value: string) {
 
 export function CompanionPage() {
   const navigate = useNavigate();
+  const { characterType } = useCharacterTypeParam();
   const { id } = useParams<{ id: string }>();
   const {
     data: girls = [],
@@ -22,8 +24,8 @@ export function CompanionPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['girls'],
-    queryFn: () => getGirls(),
+    queryKey: ['girls', characterType],
+    queryFn: () => getGirls(characterType),
   });
 
   const companion = useMemo(

@@ -608,7 +608,10 @@ export function ExplorePage() {
   const heroEyebrow = heroGirl ? getCharacterEyebrow(heroGirl) : null;
 
   const openCompanion = (girlId: string) => {
-    navigate(`/companions/${girlId}`);
+    navigate({
+      pathname: `/companions/${girlId}`,
+      search: `?type=${characterType}`,
+    });
   };
 
   useEffect(() => {

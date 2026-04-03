@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import { MessageMoreIcon } from '@/assets/icons';
 import type { IScenario } from '@/common/types';
 import { Card, Loader, Typography } from '@/components';
@@ -11,6 +12,7 @@ import { Card, Loader, Typography } from '@/components';
 import s from './GirlPage.module.scss';
 
 export function GirlPage() {
+  const { characterType } = useCharacterTypeParam();
   const { id } = useParams<{ id: string }>();
   const {
     data: girls = [],
@@ -18,8 +20,8 @@ export function GirlPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['girls'],
-    queryFn: () => getGirls(),
+    queryKey: ['girls', characterType],
+    queryFn: () => getGirls(characterType),
   });
 
   const girl = useMemo(
