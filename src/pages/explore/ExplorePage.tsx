@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,6 +42,14 @@ type StoryViewerState = {
   storyIndex: number;
 } | null;
 
+type StoryViewerOverlayProps = {
+  group: StoryGroup;
+  storyIndex: number;
+  currentStory: IStory;
+  onNavigate: (direction: 'next' | 'previous') => void;
+  onClose: () => void;
+};
+
 function getAdjacentStory(
   groups: StoryGroup[],
   viewer: StoryViewerState,
@@ -71,24 +79,341 @@ function getAdjacentStory(
   return previousGroup?.stories[previousGroup.stories.length - 1] ?? null;
 }
 
+function StoryViewerOverlay({
+  group,
+  storyIndex,
+  currentStory,
+  onNavigate,
+  onClose,
+}: StoryViewerOverlayProps) {
+  const [activeProgress, setActiveProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const photoProgressRafRef = useRef<number | null>(null);
+  const videoProgressRafRef = useRef<number | null>(null);
+  const photoElapsedMsRef = useRef(0);
+  const photoLastTickRef = useRef<number | null>(null);
+  const holdStartAtRef = useRef<number | null>(null);
+  const holdStartXRef = useRef<number | null>(null);
+  const holdTimeoutRef = useRef<number | null>(null);
+  const gestureLayerRef = useRef<HTMLDivElement | null>(null);
+  const pointerIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    photoElapsedMsRef.current = 0;
+    photoLastTickRef.current = null;
+    setActiveProgress(0);
+  }, [currentStory.id]);
+
+  useEffect(() => {
+    return () => {
+      if (photoProgressRafRef.current != null) {
+        window.cancelAnimationFrame(photoProgressRafRef.current);
+        photoProgressRafRef.current = null;
+      }
+
+      if (videoProgressRafRef.current != null) {
+        window.cancelAnimationFrame(videoProgressRafRef.current);
+        videoProgressRafRef.current = null;
+      }
+
+      if (holdTimeoutRef.current != null) {
+        window.clearTimeout(holdTimeoutRef.current);
+        holdTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentStory.type !== StoryType.Photo) {
+      return;
+    }
+
+    if (photoProgressRafRef.current != null) {
+      window.cancelAnimationFrame(photoProgressRafRef.current);
+      photoProgressRafRef.current = null;
+    }
+
+    if (isPaused) {
+      photoLastTickRef.current = null;
+      return;
+    }
+
+    const tick = (timestamp: number) => {
+      if (currentStory.type === StoryType.Photo) {
+        if (photoLastTickRef.current == null) {
+          photoLastTickRef.current = timestamp;
+        }
+
+        photoElapsedMsRef.current += timestamp - photoLastTickRef.current;
+        photoLastTickRef.current = timestamp;
+
+        const nextProgress = Math.min(
+          photoElapsedMsRef.current / PHOTO_STORY_DURATION_MS,
+          1,
+        );
+        setActiveProgress(nextProgress);
+
+        if (nextProgress >= 1) {
+          onNavigate('next');
+          return;
+        }
+      }
+
+      photoProgressRafRef.current = window.requestAnimationFrame(tick);
+    };
+
+    photoProgressRafRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (photoProgressRafRef.current != null) {
+        window.cancelAnimationFrame(photoProgressRafRef.current);
+        photoProgressRafRef.current = null;
+      }
+    };
+  }, [currentStory.id, currentStory.type, isPaused, onNavigate]);
+
+  useEffect(() => {
+    if (currentStory.type !== StoryType.Video || !videoRef.current) return;
+
+    const video = videoRef.current;
+    const cancelVideoProgress = () => {
+      if (videoProgressRafRef.current != null) {
+        window.cancelAnimationFrame(videoProgressRafRef.current);
+        videoProgressRafRef.current = null;
+      }
+    };
+
+    const syncVideoProgress = () => {
+      const duration = video.duration;
+      const nextProgress =
+        Number.isFinite(duration) && duration > 0
+          ? Math.min(video.currentTime / duration, 1)
+          : 0;
+
+      setActiveProgress(nextProgress);
+    };
+
+    const startVideoProgress = () => {
+      cancelVideoProgress();
+
+      const tick = () => {
+        syncVideoProgress();
+
+        if (!video.paused && !video.ended) {
+          videoProgressRafRef.current = window.requestAnimationFrame(tick);
+        }
+      };
+
+      videoProgressRafRef.current = window.requestAnimationFrame(tick);
+    };
+
+    const handleEnded = () => {
+      syncVideoProgress();
+      cancelVideoProgress();
+      onNavigate('next');
+    };
+
+    const handleLoadedMetadata = () => {
+      syncVideoProgress();
+
+      if (!isPaused && !video.paused) {
+        startVideoProgress();
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      syncVideoProgress();
+    };
+
+    const handlePlay = () => {
+      startVideoProgress();
+    };
+
+    const handlePause = () => {
+      cancelVideoProgress();
+      syncVideoProgress();
+    };
+
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('durationchange', handleLoadedMetadata);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+
+    syncVideoProgress();
+
+    if (!isPaused && !video.paused) {
+      startVideoProgress();
+    }
+
+    return () => {
+      cancelVideoProgress();
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('durationchange', handleLoadedMetadata);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+    };
+  }, [currentStory.id, currentStory.type, isPaused, onNavigate]);
+
+  useEffect(() => {
+    if (currentStory.type !== StoryType.Video || !videoRef.current) return;
+
+    if (isPaused) {
+      videoRef.current.pause();
+      return;
+    }
+
+    void videoRef.current.play().catch(() => {});
+  }, [currentStory.id, currentStory.type, isPaused]);
+
+  const resetGesture = () => {
+    if (holdTimeoutRef.current != null) {
+      window.clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
+    }
+
+    holdStartAtRef.current = null;
+    holdStartXRef.current = null;
+    pointerIdRef.current = null;
+  };
+
+  const handleStoryGestureStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerIdRef.current != null) return;
+
+    pointerIdRef.current = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    holdStartAtRef.current = Date.now();
+    holdStartXRef.current = event.clientX;
+
+    holdTimeoutRef.current = window.setTimeout(() => {
+      setIsPaused(true);
+    }, HOLD_THRESHOLD_MS);
+  };
+
+  const handleStoryGestureEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerIdRef.current !== event.pointerId) return;
+
+    event.currentTarget.releasePointerCapture(event.pointerId);
+
+    const pressStartedAt = holdStartAtRef.current;
+    const startX = holdStartXRef.current;
+    const wasPaused = isPaused;
+
+    resetGesture();
+
+    if (wasPaused) {
+      setIsPaused(false);
+    }
+
+    if (pressStartedAt == null || startX == null) return;
+
+    const durationMs = Date.now() - pressStartedAt;
+    if (durationMs < HOLD_THRESHOLD_MS) {
+      const bounds = gestureLayerRef.current?.getBoundingClientRect();
+      if (!bounds) return;
+
+      const relativeX = startX - bounds.left;
+      const direction = relativeX < bounds.width / 2 ? 'previous' : 'next';
+      onNavigate(direction);
+      return;
+    }
+  };
+
+  const handleStoryGestureCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerIdRef.current !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    const wasPaused = isPaused;
+    resetGesture();
+
+    if (wasPaused) {
+      setIsPaused(false);
+    }
+  };
+
+  return (
+    <div className={s.storyViewerContent}>
+      <div className={s.storyProgress}>
+        {group.stories.map((story, index) => {
+          const progress = index < storyIndex ? 1 : index === storyIndex ? activeProgress : 0;
+
+          return (
+            <span key={story.id} className={s.storyProgressTrack}>
+              <span
+                className={s.storyProgressFill}
+                style={{
+                  transform: `scaleX(${progress})`,
+                }}
+              />
+            </span>
+          );
+        })}
+      </div>
+
+      <div className={s.storyViewerHeader}>
+        <div className={s.storyViewerMeta}>
+          <img
+            src={group.avatarUrl}
+            alt={group.characterName}
+            className={s.storyViewerAvatar}
+          />
+          <div className={s.storyViewerName}>{group.characterName}</div>
+        </div>
+
+        <button type="button" className={s.storyViewerClose} onClick={onClose}>
+          <span className="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div className={s.storyMedia}>
+        {currentStory.type === StoryType.Video ? (
+          <video
+            key={currentStory.id}
+            ref={videoRef}
+            src={currentStory.fileUrl}
+            className={s.storyMediaAsset}
+            autoPlay
+            muted
+            preload="auto"
+            playsInline
+          />
+        ) : (
+          <img
+            key={currentStory.id}
+            src={currentStory.fileUrl}
+            alt=""
+            className={s.storyMediaAsset}
+          />
+        )}
+      </div>
+
+      <div
+        ref={gestureLayerRef}
+        className={s.storyGestureLayer}
+        onPointerDown={handleStoryGestureStart}
+        onPointerUp={handleStoryGestureEnd}
+        onPointerCancel={handleStoryGestureCancel}
+      />
+    </div>
+  );
+}
+
 export function ExplorePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<(typeof filterIds)[number]>('All');
   const [storyViewer, setStoryViewer] = useState<StoryViewerState>(null);
-  const [storyDurationMs, setStoryDurationMs] = useState(PHOTO_STORY_DURATION_MS);
-  const [activeProgress, setActiveProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const pendingSeenIdsRef = useRef(new Set<string>());
-  const progressRafRef = useRef<number | null>(null);
-  const photoElapsedMsRef = useRef(0);
-  const photoLastTickRef = useRef<number | null>(null);
-  const holdStartAtRef = useRef<number | null>(null);
-  const holdStartXRef = useRef<number | null>(null);
-  const gestureLayerRef = useRef<HTMLDivElement | null>(null);
+  const storyGroupsRef = useRef<StoryGroup[]>([]);
 
   const {
     data: girls = [],
@@ -201,36 +526,39 @@ export function ExplorePage() {
     navigate(`/companions/${girlId}`);
   };
 
+  useEffect(() => {
+    storyGroupsRef.current = storyGroups;
+  }, [storyGroups]);
+
   const openStoryGroup = (group: StoryGroup) => {
     const firstUnseenIndex = group.stories.findIndex(
       (story) => !seenStoryIds.has(story.id),
     );
+    const initialStoryIndex = firstUnseenIndex >= 0 ? firstUnseenIndex : 0;
 
     setStoryViewer({
       characterId: group.characterId,
-      storyIndex: firstUnseenIndex >= 0 ? firstUnseenIndex : 0,
+      storyIndex: initialStoryIndex,
     });
-    setStoryDurationMs(PHOTO_STORY_DURATION_MS);
-    setActiveProgress(0);
-    setIsPaused(false);
   };
 
-  const moveStory = (direction: 'next' | 'previous') => {
+  const moveStory = useCallback((direction: 'next' | 'previous') => {
     setStoryViewer((current) => {
       if (!current) return current;
 
-      const groupIndex = storyGroups.findIndex(
+      const groups = storyGroupsRef.current;
+      const groupIndex = groups.findIndex(
         (group) => group.characterId === current.characterId,
       );
       if (groupIndex < 0) return null;
 
-      const group = storyGroups[groupIndex];
+      const group = groups[groupIndex];
       if (direction === 'next') {
         if (current.storyIndex < group.stories.length - 1) {
           return { ...current, storyIndex: current.storyIndex + 1 };
         }
 
-        const nextGroup = storyGroups[groupIndex + 1];
+        const nextGroup = groups[groupIndex + 1];
         if (!nextGroup) return null;
 
         return {
@@ -243,7 +571,7 @@ export function ExplorePage() {
         return { ...current, storyIndex: current.storyIndex - 1 };
       }
 
-      const previousGroup = storyGroups[groupIndex - 1];
+      const previousGroup = groups[groupIndex - 1];
       if (!previousGroup) return null;
 
       return {
@@ -251,7 +579,7 @@ export function ExplorePage() {
         storyIndex: previousGroup.stories.length - 1,
       };
     });
-  };
+  }, []);
 
   useEffect(() => {
     if (!storyViewer) return;
@@ -260,66 +588,6 @@ export function ExplorePage() {
       return;
     }
   }, [currentGroup, currentStory, storyViewer]);
-
-  useEffect(() => {
-    if (!currentStory) return;
-
-    setStoryDurationMs(
-      currentStory.type === StoryType.Photo ? PHOTO_STORY_DURATION_MS : 12_000,
-    );
-    setActiveProgress(0);
-    photoElapsedMsRef.current = 0;
-    photoLastTickRef.current = null;
-  }, [currentStory]);
-
-  useEffect(() => {
-    if (progressRafRef.current != null) {
-      window.cancelAnimationFrame(progressRafRef.current);
-      progressRafRef.current = null;
-    }
-
-    if (!storyViewer || !currentStory || isPaused) {
-      photoLastTickRef.current = null;
-      return;
-    }
-
-    const tick = (timestamp: number) => {
-      if (currentStory.type === StoryType.Photo) {
-        if (photoLastTickRef.current == null) {
-          photoLastTickRef.current = timestamp;
-        }
-
-        photoElapsedMsRef.current += timestamp - photoLastTickRef.current;
-        photoLastTickRef.current = timestamp;
-
-        const nextProgress = Math.min(photoElapsedMsRef.current / storyDurationMs, 1);
-        setActiveProgress(nextProgress);
-
-        if (nextProgress >= 1) {
-          moveStory('next');
-          return;
-        }
-      } else if (videoRef.current) {
-        const duration = videoRef.current.duration * 1000;
-        if (!Number.isNaN(duration) && duration > 0) {
-          setActiveProgress(
-            Math.min((videoRef.current.currentTime * 1000) / duration, 1),
-          );
-        }
-      }
-
-      progressRafRef.current = window.requestAnimationFrame(tick);
-    };
-
-    progressRafRef.current = window.requestAnimationFrame(tick);
-
-    return () => {
-      if (progressRafRef.current != null) {
-        window.cancelAnimationFrame(progressRafRef.current);
-        progressRafRef.current = null;
-      }
-    };
-  }, [currentStory, isPaused, storyDurationMs, storyViewer]);
 
   useEffect(() => {
     if (!currentStory) return;
@@ -351,19 +619,6 @@ export function ExplorePage() {
   }, [currentStory, queryClient, seenStoryIds]);
 
   useEffect(() => {
-    if (!videoRef.current || !currentStory || currentStory.type !== StoryType.Video) {
-      return;
-    }
-
-    if (isPaused) {
-      videoRef.current.pause();
-      return;
-    }
-
-    void videoRef.current.play().catch(() => {});
-  }, [currentStory, isPaused]);
-
-  useEffect(() => {
     if (!storyViewer) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -372,7 +627,7 @@ export function ExplorePage() {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [storyViewer]);
+  }, [Boolean(storyViewer)]);
 
   useEffect(() => {
     if (!nextStory) return;
@@ -404,37 +659,6 @@ export function ExplorePage() {
     video.src = nextGroupFirstStory.fileUrl;
     video.load();
   }, [nextGroupFirstStory, nextStory]);
-
-  const handleStoryGestureStart = (event: ReactPointerEvent<HTMLDivElement>) => {
-    holdStartAtRef.current = Date.now();
-    holdStartXRef.current = event.clientX;
-    setIsPaused(true);
-  };
-
-  const handleStoryGestureEnd = () => {
-    const pressStartedAt = holdStartAtRef.current;
-    const startX = holdStartXRef.current;
-    holdStartAtRef.current = null;
-    holdStartXRef.current = null;
-    setIsPaused(false);
-
-    if (pressStartedAt == null || startX == null) return;
-
-    if (Date.now() - pressStartedAt < HOLD_THRESHOLD_MS) {
-      const bounds = gestureLayerRef.current?.getBoundingClientRect();
-      if (!bounds) return;
-
-      const relativeX = startX - bounds.left;
-      const direction = relativeX < bounds.width / 2 ? 'previous' : 'next';
-      moveStory(direction);
-    }
-  };
-
-  const handleStoryGestureCancel = () => {
-    holdStartAtRef.current = null;
-    holdStartXRef.current = null;
-    setIsPaused(false);
-  };
 
   if (isLoading) {
     return <div className={s.empty}>Composing your midnight gallery...</div>;
@@ -579,83 +803,14 @@ export function ExplorePage() {
         ? createPortal(
             <div className={s.storyViewer}>
               <div className={s.storyViewerBackdrop} />
-
-              <div className={s.storyViewerContent}>
-                <div className={s.storyProgress}>
-                  {currentGroup.stories.map((story, index) => {
-                    const isSeen = index < storyViewer.storyIndex;
-                    const isCurrent = index === storyViewer.storyIndex;
-                    const width = isSeen ? '100%' : isCurrent ? `${activeProgress * 100}%` : '0%';
-
-                    return (
-                      <span key={story.id} className={s.storyProgressTrack}>
-                        <span
-                          className={cn(s.storyProgressFill, [], {
-                            [s.storyProgressSeen]: isSeen,
-                          })}
-                          style={{ width }}
-                        />
-                      </span>
-                    );
-                  })}
-                </div>
-
-                <div className={s.storyViewerHeader}>
-                  <div className={s.storyViewerMeta}>
-                    <img
-                      src={currentGroup.avatarUrl}
-                      alt={currentGroup.characterName}
-                      className={s.storyViewerAvatar}
-                    />
-                    <div className={s.storyViewerName}>{currentGroup.characterName}</div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={s.storyViewerClose}
-                    onClick={() => setStoryViewer(null)}
-                  >
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-
-                <div className={s.storyMedia}>
-                  {currentStory.type === StoryType.Video ? (
-                    <video
-                      key={currentStory.id}
-                      ref={videoRef}
-                      src={currentStory.fileUrl}
-                      className={s.storyMediaAsset}
-                      autoPlay
-                      muted
-                      playsInline
-                      onLoadedMetadata={(event) => {
-                        const durationMs = event.currentTarget.duration * 1000;
-                        if (!Number.isNaN(durationMs) && durationMs > 0) {
-                          setStoryDurationMs(durationMs);
-                        }
-                      }}
-                      onEnded={() => moveStory('next')}
-                    />
-                  ) : (
-                    <img
-                      key={currentStory.id}
-                      src={currentStory.fileUrl}
-                      alt=""
-                      className={s.storyMediaAsset}
-                    />
-                  )}
-                </div>
-
-                <div
-                  ref={gestureLayerRef}
-                  className={s.storyGestureLayer}
-                  onPointerDown={handleStoryGestureStart}
-                  onPointerUp={handleStoryGestureEnd}
-                  onPointerCancel={handleStoryGestureCancel}
-                  onPointerLeave={handleStoryGestureCancel}
-                />
-              </div>
+              <StoryViewerOverlay
+                key={currentStory.id}
+                group={currentGroup}
+                storyIndex={storyViewer.storyIndex}
+                currentStory={currentStory}
+                onNavigate={moveStory}
+                onClose={() => setStoryViewer(null)}
+              />
             </div>,
             document.body,
           )
