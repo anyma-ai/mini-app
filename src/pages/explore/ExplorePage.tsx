@@ -17,50 +17,50 @@ import {
   type IStoriesResponse,
   markStorySeen,
 } from '@/api/stories';
-import { type ICharacter, type IStory, StoryType } from '@/common/types';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
+import {
+  CharacterPersonality,
+  type ICharacter,
+  type IStory,
+  StoryType,
+} from '@/common/types';
 import { cn } from '@/common/utils';
 import { CharacterTypeSwitch } from '@/components/noir';
 
 import s from './ExplorePage.module.scss';
 
-const moods = ['Caring', 'Spicy', 'Playful', 'Intellectual'] as const;
-const filterIds = ['All', ...moods] as const;
+const personalityFilters = [
+  { id: 'All', label: 'All' },
+  { id: CharacterPersonality.Hot, label: 'Hot 🔥' },
+  { id: CharacterPersonality.Playful, label: 'Playful 😏' },
+  { id: CharacterPersonality.Devoted, label: 'Devoted 💕' },
+] as const;
 const PHOTO_STORY_DURATION_MS = 5_000;
 const HOLD_THRESHOLD_MS = 180;
 const SWIPE_THRESHOLD_PX = 48;
 const SWIPE_CANCEL_HOLD_THRESHOLD_PX = 12;
 
-function getMood(character: ICharacter) {
-  const score = [...character.name].reduce(
-    (total, letter) => total + letter.charCodeAt(0),
-    0,
-  );
-
-  return moods[score % moods.length];
-}
-
 function getCardImage(character: ICharacter) {
   return character.promoImgUrl ?? character.avatarUrl;
 }
 
-function getCharacterEyebrow(character: ICharacter) {
-  if (character.scenarios.some((scenario) => scenario.isNew)) {
-    return {
-      label: 'New',
-      className: 'new',
-    } as const;
-  }
-
-  if (character.isFeatured) {
-    return {
-      label: 'Trending',
-      className: 'trending',
-    } as const;
-  }
-
-  return null;
-}
+// function getCharacterEyebrow(character: ICharacter) {
+//   if (character.scenarios.some((scenario) => scenario.isNew)) {
+//     return {
+//       label: 'New',
+//       className: 'new',
+//     } as const;
+//   }
+//
+//   if (character.isFeatured) {
+//     return {
+//       label: 'Trending',
+//       className: 'trending',
+//     } as const;
+//   }
+//
+//   return null;
+// }
 
 type StoryGroup = {
   characterId: string;
@@ -488,7 +488,7 @@ export function ExplorePage() {
   const { characterType, setCharacterType } = useCharacterTypeParam();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] =
-    useState<(typeof filterIds)[number]>('All');
+    useState<(typeof personalityFilters)[number]['id']>('All');
   const [storyViewer, setStoryViewer] = useState<StoryViewerState>(null);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const pendingSeenIdsRef = useRef(new Set<string>());
@@ -594,7 +594,9 @@ export function ExplorePage() {
       const matchesQuery =
         deferredQuery.length === 0 || searchHaystack.includes(deferredQuery);
       const matchesFilter =
-        activeFilter === 'All' ? true : getMood(girl) === activeFilter;
+        activeFilter === 'All'
+          ? true
+          : (girl.personality ?? []).includes(activeFilter);
 
       return matchesQuery && matchesFilter;
     });
@@ -605,7 +607,7 @@ export function ExplorePage() {
   const gridGirls = heroGirl
     ? filteredGirls.filter((girl) => girl.id !== heroGirl.id)
     : filteredGirls;
-  const heroEyebrow = heroGirl ? getCharacterEyebrow(heroGirl) : null;
+  // const heroEyebrow = heroGirl ? getCharacterEyebrow(heroGirl) : null;
 
   const openCompanion = (girlId: string) => {
     navigate({
@@ -839,23 +841,23 @@ export function ExplorePage() {
         </label>
 
         <div className={`${s.chips} app-hide-scrollbar`}>
-          {filterIds.map((filterId) => (
+          {personalityFilters.map((filter) => (
             <button
-              key={filterId}
+              key={filter.id}
               type="button"
               className={cn(s.chip, [], {
-                [s.chipActive]: filterId === activeFilter,
+                [s.chipActive]: filter.id === activeFilter,
               })}
-              onClick={() => setActiveFilter(filterId)}
+              onClick={() => setActiveFilter(filter.id)}
             >
-              {filterId}
+              {filter.label}
             </button>
           ))}
         </div>
       </section>
 
       {filteredGirls.length === 0 ? (
-        <div className={s.empty}>No companions match this mood yet.</div>
+        <div className={s.empty}>No companions match this personality yet.</div>
       ) : (
         <section className={s.grid}>
           {heroGirl ? (
@@ -871,15 +873,15 @@ export function ExplorePage() {
               />
               <div className={s.cardOverlay} />
               <div className={s.cardBody}>
-                {heroEyebrow ? (
-                  <span
-                    className={cn(s.eyebrow, [], {
-                      [s.eyebrowTrending]: heroEyebrow.className === 'trending',
-                    })}
-                  >
-                    {heroEyebrow.label}
-                  </span>
-                ) : null}
+                {/*{heroEyebrow ? (*/}
+                {/*  <span*/}
+                {/*    className={cn(s.eyebrow, [], {*/}
+                {/*      [s.eyebrowTrending]: heroEyebrow.className === 'trending',*/}
+                {/*    })}*/}
+                {/*  >*/}
+                {/*    {heroEyebrow.label}*/}
+                {/*  </span>*/}
+                {/*) : null}*/}
                 <div className={s.heroFooter}>
                   <div className={s.info}>
                     <h2 className={`${s.cardTitle} ${s.heroTitle}`}>
@@ -911,7 +913,7 @@ export function ExplorePage() {
                   <div className={s.tileFooter}>
                     <div>
                       <h3 className={s.cardTitle}>{girl.name}</h3>
-                      <div className={s.mood}>{getMood(girl)}</div>
+                      <div className={s.mood}>{girl.description}</div>
                     </div>
                     <span className={s.secondaryAction}>Chat Now</span>
                   </div>

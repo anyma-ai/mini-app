@@ -8,11 +8,18 @@ export interface ICharacter {
   isFeatured: boolean;
   scenarios: IScenario[];
   type: CharacterType;
+  personality: CharacterPersonality[];
 }
 
 export enum CharacterType {
   Realistic = 'realistic',
   Anime = 'anime',
+}
+
+export enum CharacterPersonality {
+  Hot = 'hot',
+  Playful = 'playful',
+  Devoted = 'devoted',
 }
 
 export interface IScenario {
