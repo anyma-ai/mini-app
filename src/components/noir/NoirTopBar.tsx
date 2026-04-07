@@ -19,7 +19,7 @@ export function NoirTopBar({
   title,
   avatarSrc,
   credits = 0,
-  creditsLabel = 'Aura',
+  creditsLabel = 'Credits',
   onCreditsClick,
   onBack,
 }: NoirTopBarProps) {

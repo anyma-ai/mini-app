@@ -61,7 +61,7 @@ export function MiniAppLayout() {
       <div className={s.shell}>
         <div className={s.ambient} />
         {isSubscriptions ? (
-          <NoirTopBar mode="back" title="Upgrade Aura" />
+          <NoirTopBar mode="back" title="Upgrade Premium" />
         ) : isCompanion ? (
           <NoirTopBar mode="back" title="Scenarios" />
         ) : (

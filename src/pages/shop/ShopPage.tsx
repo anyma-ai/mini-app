@@ -105,7 +105,7 @@ export function ShopPage() {
     return new Map(
       plans.map((plan, index) => [
         plan.id,
-        packNames[index] ?? `Aura Pack ${index + 1}`,
+        packNames[index] ?? `Credit Pack ${index + 1}`,
       ]),
     );
   }, [plans]);
@@ -182,7 +182,7 @@ export function ShopPage() {
 
       <section className={s.section} id="credit-packs">
         <div className={s.sectionHeader}>
-          <h2 className={s.sectionTitle}>Aura Packs</h2>
+          <h2 className={s.sectionTitle}>Credit Packs</h2>
           <div className={s.sectionMeta}>Best Value</div>
         </div>
 
@@ -198,11 +198,11 @@ export function ShopPage() {
               >
                 <div>
                   <div className={s.packMeta}>
-                    {packNameById.get(plan.id) ?? 'Aura Pack'}
+                    {packNameById.get(plan.id) ?? 'Credit Pack'}
                   </div>
                   <div className={s.packAmountRow}>
                     <span className={s.packAmount}>{plan.air}</span>
-                    <span className={s.packLabel}>Aura</span>
+                    <span className={s.packLabel}>Credits</span>
                   </div>
                 </div>
 
@@ -312,7 +312,7 @@ export function ShopPage() {
       {!user?.isSubscribed && (
         <section className={s.membershipCard}>
           <div className={s.membershipBody}>
-            <h2 className={s.membershipTitle}>Aura Infinite</h2>
+            <h2 className={s.membershipTitle}>Anyma Infinite</h2>
             <p className={s.membershipCopy}>
               Unlimited intimacy points, daily free credits, and access to
               locked story paths.
