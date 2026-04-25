@@ -82,7 +82,11 @@
   min-height: 220px;
   padding: var(--space-6);
   border-radius: var(--radius-xl);
-  background: linear-gradient(160deg, var(--color-surface-high), var(--color-surface));
+  background: linear-gradient(
+    160deg,
+    var(--color-surface-high),
+    var(--color-surface)
+  );
   border: 1px solid var(--color-outline);
 }
 
@@ -240,6 +244,7 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  height: 48px;
 }
 
 .giftDescription {
@@ -274,7 +279,11 @@
   overflow: hidden;
   padding: var(--space-8);
   border-radius: var(--radius-xl);
-  background: linear-gradient(160deg, var(--color-surface-high), var(--color-background));
+  background: linear-gradient(
+    160deg,
+    var(--color-surface-high),
+    var(--color-background)
+  );
   border: 1px solid rgba(255, 137, 171, 0.14);
 }
 

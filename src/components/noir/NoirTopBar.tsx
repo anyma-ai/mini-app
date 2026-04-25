@@ -63,7 +63,7 @@ export function NoirTopBar({
             <img src={avatarSrc} alt="" className={s.avatar} />
           ) : null}
         </div>
-        <div className={s.wordmark}>Anyma</div>
+        <div className={s.wordmark}>SweetMe</div>
       </div>
       <button type="button" className={s.pill} onClick={onCreditsClick}>
         <span className={cn('material-symbols-outlined filled', [s.pillIcon])}>

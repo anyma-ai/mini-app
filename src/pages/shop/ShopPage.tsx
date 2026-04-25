@@ -175,7 +175,7 @@ export function ShopPage() {
       <section className={s.hero} id={'hero'}>
         <h1 className={s.title}>The Boutique</h1>
         <p className={s.description}>
-          Enhance your connection with exclusive gifts, and the rarest Anyma
+          Enhance your connection with exclusive gifts, and the rarest SweetMe
           access.
         </p>
       </section>
@@ -312,7 +312,7 @@ export function ShopPage() {
       {!user?.isSubscribed && (
         <section className={s.membershipCard}>
           <div className={s.membershipBody}>
-            <h2 className={s.membershipTitle}>Anyma Infinite</h2>
+            <h2 className={s.membershipTitle}>SweetMe Infinite</h2>
             <p className={s.membershipCopy}>
               Unlimited intimacy points, daily free credits, and access to
               locked story paths.

@@ -122,7 +122,7 @@ export function ProfilePage() {
       <section className={s.premiumCard}>
         <div className={s.premiumTop}>
           <div className={s.premiumCopy}>
-            <h2 className={s.premiumTitle}>Anyma Premium</h2>
+            <h2 className={s.premiumTitle}>SweetMe Premium</h2>
             <p className={s.premiumSubtitle}>
               {user?.isSubscribed && subscriptionDate
                 ? `Active until ${subscriptionDate}`
@@ -142,7 +142,7 @@ export function ProfilePage() {
             <span className="material-symbols-outlined">auto_awesome</span>
           </div>
           <div className={s.premiumStripCopy}>
-            <p className={s.premiumStripTitle}>Anyma expands with Premium</p>
+            <p className={s.premiumStripTitle}>SweetMe expands with Premium</p>
             <p className={s.premiumStripText}>
               Unlimited energy, exclusive moments, and a deeper private
               experience.

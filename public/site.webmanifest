@@ -1,6 +1,6 @@
 {
-  "name": "Anyma App",
-  "short_name": "Anyma",
+  "name": "SweetMe App",
+  "short_name": "SweetMe",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

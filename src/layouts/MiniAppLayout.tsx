@@ -2,7 +2,7 @@ import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import oliviaImage from '@/assets/characters/olivia.webp';
+import logo from '@/assets/logo.png';
 import {
   NoirBottomDock,
   type NoirDockItem,
@@ -66,7 +66,7 @@ export function MiniAppLayout() {
           <NoirTopBar mode="back" title="Scenarios" />
         ) : (
           <NoirTopBar
-            avatarSrc={oliviaImage}
+            avatarSrc={logo}
             credits={user?.air ?? 0}
             onCreditsClick={() => navigate('/shop')}
           />
