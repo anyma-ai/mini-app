@@ -80,14 +80,14 @@ export function ProfilePage() {
           </span>
           <div className={s.statBody}>
             <div className={s.statValue}>{user?.air ?? 0}</div>
-            <div className={s.statLabel}>Aura</div>
+            <div className={s.statLabel}>Credits</div>
           </div>
           <button
             type="button"
             className={s.statButton}
             onClick={() => navigate('/shop')}
           >
-            Buy Aura
+            Buy Credits
           </button>
         </article>
 
