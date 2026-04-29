@@ -218,6 +218,7 @@ export function ShopPage() {
         await sendGift(gift.id);
         queryClient.invalidateQueries({ queryKey: ['gifts'] });
         queryClient.invalidateQueries({ queryKey: ['me'] });
+        TelegramWebApp.close();
       } catch (error) {
         console.error(error);
       } finally {
