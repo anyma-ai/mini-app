@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { buyGift, getGifts } from '@/api/gifts';
+import { buyGift, getGifts, sendGift } from '@/api/gifts';
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
 import { TgStarWhiteIcon } from '@/assets/icons';
@@ -22,11 +22,16 @@ const packNames = [
 ];
 
 export function ShopPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const launchParams = useLaunchParams();
   const { user } = useUser();
   const [buyingGiftId, setBuyingGiftId] = useState<string | null>(null);
+  const [sendingGiftId, setSendingGiftId] = useState<string | null>(null);
+  const [highlightedGiftId, setHighlightedGiftId] = useState<string | null>(
+    null,
+  );
   const [pendingOwnedScrollId, setPendingOwnedScrollId] = useState<
     string | null
   >(null);
@@ -88,6 +93,49 @@ export function ShopPage() {
     };
   }, [gifts, pendingOwnedScrollId]);
 
+  useEffect(() => {
+    if (!location.hash || gifts.length === 0) return;
+
+    const giftId = decodeURIComponent(
+      location.hash.split('?')[0].replace('#', '').trim(),
+    );
+    if (!giftId) return;
+
+    const exists = gifts.some((gift) => gift.id === giftId);
+    if (!exists) return;
+
+    let timeoutId: number | undefined;
+    let retryId: number | undefined;
+
+    const tryHighlight = (attempt: number) => {
+      const element = document.querySelector(
+        `[data-gift-id="${giftId}"]`,
+      ) as HTMLElement | null;
+
+      if (!element) {
+        if (attempt < 3) {
+          retryId = window.setTimeout(() => {
+            tryHighlight(attempt + 1);
+          }, 120);
+        }
+        return;
+      }
+
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightedGiftId(giftId);
+      timeoutId = window.setTimeout(() => {
+        setHighlightedGiftId((current) => (current === giftId ? null : current));
+      }, 1800);
+    };
+
+    const rafId = window.requestAnimationFrame(() => tryHighlight(0));
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+      if (retryId) window.clearTimeout(retryId);
+    };
+  }, [gifts, location.hash]);
+
   const featuredPlan = useMemo(
     () => plans.find((plan) => plan.isRecommended) ?? plans[1] ?? plans[0],
     [plans],
@@ -139,15 +187,41 @@ export function ShopPage() {
     void (async () => {
       try {
         setBuyingGiftId(gift.id);
-        await buyGift(gift.id);
-        setPendingOwnedScrollId(gift.id);
+        const result = await buyGift(gift.id);
+
+        if (!result.success) return;
+
         queryClient.invalidateQueries({ queryKey: ['gifts'] });
         queryClient.invalidateQueries({ queryKey: ['me'] });
+
+        if (result.shouldClose) {
+          TelegramWebApp.close();
+          return;
+        }
+
+        setPendingOwnedScrollId(gift.id);
       } catch (error) {
         console.error(error);
         setPendingOwnedScrollId(null);
       } finally {
         setBuyingGiftId(null);
+      }
+    })();
+  };
+
+  const handleGiftSend = (gift: IGift) => {
+    if (!user?.hasActiveChat || sendingGiftId === gift.id) return;
+
+    void (async () => {
+      try {
+        setSendingGiftId(gift.id);
+        await sendGift(gift.id);
+        queryClient.invalidateQueries({ queryKey: ['gifts'] });
+        queryClient.invalidateQueries({ queryKey: ['me'] });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setSendingGiftId(null);
       }
     })();
   };
@@ -237,7 +311,13 @@ export function ShopPage() {
 
         <div className={s.gifts}>
           {availableGifts.map((gift) => (
-            <article key={gift.id} className={s.gift}>
+            <article
+              key={gift.id}
+              className={cn(s.gift, [
+                highlightedGiftId === gift.id ? s.highlighted : '',
+              ])}
+              data-gift-id={gift.id}
+            >
               <div className={s.giftMedia}>
                 <img
                   src={gift.imgUrl}
@@ -279,7 +359,10 @@ export function ShopPage() {
             {ownedGifts.map((gift) => (
               <article
                 key={gift.id}
-                className={s.gift}
+                className={cn(s.gift, [
+                  highlightedGiftId === gift.id ? s.highlighted : '',
+                ])}
+                data-gift-id={gift.id}
                 data-owned-gift-id={gift.id}
               >
                 <div className={s.giftMedia}>
@@ -295,12 +378,13 @@ export function ShopPage() {
                   <button
                     type="button"
                     className={`${s.giftButton} ${s.giftOwned}`}
-                    onClick={() => handleGiftPurchase(gift)}
+                    onClick={() => handleGiftSend(gift)}
+                    disabled={!user?.hasActiveChat || sendingGiftId === gift.id}
                   >
                     <span className="material-symbols-outlined filled">
                       auto_awesome
                     </span>
-                    Owned
+                    {user?.hasActiveChat ? 'Gift' : 'Owned'}
                   </button>
                 </div>
               </article>

@@ -8,4 +8,5 @@ export interface IUser {
   languageCode: string;
   subscribedUntil?: string | null;
   createdAt: string;
+  hasActiveChat: boolean;
 }
