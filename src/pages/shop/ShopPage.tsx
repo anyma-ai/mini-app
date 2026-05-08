@@ -14,13 +14,6 @@ import { useUser } from '@/context/UserContext';
 
 import s from './ShopPage.module.scss';
 
-const packNames = [
-  'Quick Spark',
-  'Deepening Desire',
-  'Eternal Connection',
-  'Unlimited Flow',
-];
-
 export function ShopPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -149,15 +142,6 @@ export function ShopPage() {
       ...plans.filter((plan) => plan.id !== featuredPlan.id),
     ];
   }, [featuredPlan, plans]);
-
-  const packNameById = useMemo(() => {
-    return new Map(
-      plans.map((plan, index) => [
-        plan.id,
-        packNames[index] ?? `Credit Pack ${index + 1}`,
-      ]),
-    );
-  }, [plans]);
 
   const handlePlanPurchase = (plan: IPlan) => {
     if (buyingPlanId === plan.id) return;
