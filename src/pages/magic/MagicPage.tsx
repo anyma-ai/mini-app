@@ -4,12 +4,13 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
-import { CharacterTypeSwitch } from '@/components/noir';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import type { IScenario } from '@/common/types';
 import { cn } from '@/common/utils';
+import { CharacterTypeSwitch } from '@/components/noir';
 
 import s from './MagicPage.module.scss';
+
 
 function parseDate(value: string) {
   const timestamp = Date.parse(value);
@@ -95,7 +96,7 @@ export function MagicPage() {
       />
 
       <div className={s.stack}>
-        {activeEntries.slice(0, 3).map(({ scenario }) => (
+        {activeEntries.map(({ scenario }) => (
           <section key={scenario.id} className={s.card}>
             <img
               src={scenario.promoImgUrl}

@@ -27,6 +27,7 @@ export function ShopPage() {
   const queryClient = useQueryClient();
   const launchParams = useLaunchParams();
   const { user } = useUser();
+  const [buyingPlanId, setBuyingPlanId] = useState<string | null>(null);
   const [buyingGiftId, setBuyingGiftId] = useState<string | null>(null);
   const [sendingGiftId, setSendingGiftId] = useState<string | null>(null);
   const [highlightedGiftId, setHighlightedGiftId] = useState<string | null>(
@@ -159,8 +160,11 @@ export function ShopPage() {
   }, [plans]);
 
   const handlePlanPurchase = (plan: IPlan) => {
+    if (buyingPlanId === plan.id) return;
+
     void (async () => {
       try {
+        setBuyingPlanId(plan.id);
         const invoiceLink = await createPlanInvoice(plan.id, launchParams);
         TelegramWebApp.openInvoice(invoiceLink, (status) => {
           if (status === 'paid') {
@@ -169,6 +173,8 @@ export function ShopPage() {
         });
       } catch (error) {
         console.error(error);
+      } finally {
+        setBuyingPlanId(null);
       }
     })();
   };
@@ -266,14 +272,10 @@ export function ShopPage() {
             const isFeatured = plan.id === featuredPlan?.id;
 
             return (
-              <article
-                key={plan.id}
-                className={isFeatured ? s.packFeatured : s.pack}
-                onClick={() => handlePlanPurchase(plan)}
-              >
+              <article key={plan.id} className={isFeatured ? s.packFeatured : s.pack}>
                 <div>
                   <div className={s.packMeta}>
-                    {packNameById.get(plan.id) ?? 'Credit Pack'}
+                    {isFeatured ? 'Most Popular' : 'Default'}
                   </div>
                   <div className={s.packAmountRow}>
                     <span className={s.packAmount}>{plan.air}</span>
@@ -282,13 +284,17 @@ export function ShopPage() {
                 </div>
 
                 <div className={s.packFooter}>
-                  <div className={s.packPriceRow}>
-                    <TgStarWhiteIcon className={s.packPriceIcon} />
-                    <span className={s.packPrice}>{plan.price}</span>
-                  </div>
-                  <button type="button" className={s.packButton}>
-                    <span className="material-symbols-outlined">
-                      {isFeatured ? 'payments' : 'add'}
+                  <button
+                    type="button"
+                    className={isFeatured ? s.packCtaFeatured : s.packCta}
+                    onClick={() => handlePlanPurchase(plan)}
+                    disabled={buyingPlanId === plan.id}
+                  >
+                    <span className={s.packCtaLabel}>Buy Now</span>
+                    <span className={s.packCtaDivider}>-</span>
+                    <span className={s.packCtaPrice}>
+                      <TgStarWhiteIcon className={s.packPriceIcon} />
+                      <span className={s.packPrice}>{plan.price}</span>
                     </span>
                   </button>
                 </div>

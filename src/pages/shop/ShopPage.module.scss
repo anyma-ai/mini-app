@@ -75,11 +75,11 @@
 .pack,
 .packFeatured {
   position: relative;
-  flex: 0 0 240px;
+  flex: 0 0 260px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 220px;
+  min-height: 200px;
   padding: var(--space-6);
   border-radius: var(--radius-xl);
   background: linear-gradient(
@@ -100,7 +100,9 @@
 .packFeatured .packMeta,
 .packFeatured .packAmount,
 .packFeatured .packLabel,
-.packFeatured .packPrice {
+.packFeatured .packPrice,
+.packFeatured .packCtaLabel,
+.packFeatured .packCtaDivider {
   color: var(--color-primary-foreground);
 }
 
@@ -132,23 +134,14 @@
 }
 
 .packFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  margin-top: auto;
 }
 
 .packPrice {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.packPriceRow {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  letter-spacing: 0;
 }
 
 .pillIcon {
@@ -158,25 +151,48 @@
 
 .packPriceIcon {
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
 }
 
-.packButton {
+.packCta,
+.packCtaFeatured {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
+  gap: 10px;
+  width: 100%;
+  // min-height: 58px;
+  padding: 12px 18px;
+  border-radius: 18px;
   background: rgba(37, 37, 44, 0.94);
+  border: 1px solid rgba(255, 137, 171, 0.16);
   color: var(--color-primary);
   transition: transform var(--transition-base);
 }
 
-.packFeatured .packButton {
+.packCta:disabled,
+.packCtaFeatured:disabled {
+  opacity: 0.72;
+}
+
+.packCtaFeatured {
   background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.2);
   color: var(--color-primary-foreground);
+}
+
+.packCtaLabel,
+.packCtaDivider {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.packCtaPrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .packButton:active,
@@ -201,7 +217,8 @@
 }
 
 .highlighted {
-  box-shadow: 0 0 0 1px rgba(133, 107, 255, 0.9),
+  box-shadow:
+    0 0 0 1px rgba(133, 107, 255, 0.9),
     0 0 16px rgba(133, 107, 255, 0.35);
   animation: giftPulse 1.2s ease-in-out;
 }
