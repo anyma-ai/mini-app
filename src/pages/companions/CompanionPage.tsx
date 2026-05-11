@@ -51,7 +51,7 @@ export function CompanionPage() {
     }
 
     TelegramWebApp.openTelegramLink(
-      `https://t.me/${botUsername}?start=s_${scenario.slug}`,
+      `https://t.me/${botUsername}?start=${scenario.slug}`,
     );
     TelegramWebApp.close();
   };

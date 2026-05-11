@@ -4,8 +4,8 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
-import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import { MessageMoreIcon } from '@/assets/icons';
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import type { IScenario } from '@/common/types';
 import { Card, Loader, Typography } from '@/components';
 
@@ -93,7 +93,7 @@ export function GirlPage() {
     }
 
     TelegramWebApp.openTelegramLink(
-      `https://t.me/${botUsername}?start=s_${scenario.slug}`,
+      `https://t.me/${botUsername}?start=${scenario.slug}`,
     );
     TelegramWebApp.close();
   };
