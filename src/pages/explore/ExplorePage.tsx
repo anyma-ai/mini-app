@@ -25,8 +25,8 @@ import {
   StoryType,
 } from '@/common/types';
 import { cn } from '@/common/utils';
-import { CharacterTypeSwitch } from '@/components/noir';
 
+// import { CharacterTypeSwitch } from '@/components/noir';
 import s from './ExplorePage.module.scss';
 
 const personalityFilters = [
@@ -485,7 +485,7 @@ function StoryViewerOverlay({
 export function ExplorePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { characterType, setCharacterType } = useCharacterTypeParam();
+  const { characterType } = useCharacterTypeParam();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] =
     useState<(typeof personalityFilters)[number]['id']>('All');
@@ -820,11 +820,11 @@ export function ExplorePage() {
         </section>
       ) : null}
 
-      <CharacterTypeSwitch
+      {/* <CharacterTypeSwitch
         value={characterType}
         onChange={setCharacterType}
         className={s.typeSwitch}
-      />
+      /> */}
 
       <section className={s.filters}>
         <label className={s.search}>

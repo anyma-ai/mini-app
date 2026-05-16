@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { getGirls } from '@/api/girls';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
 import type { IScenario } from '@/common/types';
-import { cn } from '@/common/utils';
-import { CharacterTypeSwitch } from '@/components/noir';
 
+// import { cn } from '@/common/utils';
+// import { CharacterTypeSwitch } from '@/components/noir';
 import s from './MagicPage.module.scss';
 
 
@@ -19,7 +19,7 @@ function parseDate(value: string) {
 
 export function MagicPage() {
   const navigate = useNavigate();
-  const { characterType, setCharacterType } = useCharacterTypeParam();
+  const { characterType } = useCharacterTypeParam();
   const {
     data: girls = [],
     isLoading,
@@ -89,11 +89,11 @@ export function MagicPage() {
         </p>
       </section>
 
-      <CharacterTypeSwitch
+      {/* <CharacterTypeSwitch
         value={characterType}
         onChange={setCharacterType}
         className={s.typeSwitch}
-      />
+      /> */}
 
       <div className={s.stack}>
         {activeEntries.map(({ scenario }) => (
@@ -106,13 +106,13 @@ export function MagicPage() {
             <div className={s.cardOverlay} />
             <div className={s.cardBody}>
               <div className={s.metaRow}>
-                <span
+                {/* <span
                   className={cn(s.badge, [], {
                     [s.badgeSecondary]: !scenario.isNew,
                   })}
                 >
                   {scenario.isNew ? 'New Release' : 'Trending'}
-                </span>
+                </span> */}
               </div>
 
               <div>
