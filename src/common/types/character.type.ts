@@ -22,9 +22,28 @@ export enum CharacterPersonality {
   Devoted = 'devoted',
 }
 
+export enum RoleplayStage {
+  Acquaintance = 'ACQUAINTANCE',
+  Flirting = 'FLIRTING',
+  Seduction = 'SEDUCTION',
+
+  Resistance = 'RESISTANCE',
+
+  Undressing = 'UNDRESSING',
+  Prelude = 'PRELUDE',
+  Sex = 'SEX',
+  Aftercare = 'AFTERCARE',
+}
+export interface IScenarioProgress {
+  id: string;
+  opensAt: string;
+  maxStage: RoleplayStage;
+}
+
 export interface IScenario {
   id: string;
   slug?: string;
+  level: number;
   name: string;
   description: string;
   shortDescription: string;
@@ -33,6 +52,8 @@ export interface IScenario {
   promoImgHorizontalUrl: string;
   isNew: boolean;
   createdAt: string;
+  opensAfterId?: string;
+  scenarioProgress?: IScenarioProgress;
 }
 
 export enum StoryType {

@@ -23,3 +23,19 @@ export async function patchMeCountryOnce(): Promise<void> {
     throw new Error(text || 'Failed to patch country');
   }
 }
+
+export async function postMeDeeplink(ref: string): Promise<void> {
+  const response = await apiFetch('/me/deeplink', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ref,
+      type: 'broadcast',
+    }),
+  });
+
+  if (!response.ok && response.status !== 204) {
+    const text = await response.text().catch(() => '');
+    throw new Error(text || 'Failed to post deeplink');
+  }
+}

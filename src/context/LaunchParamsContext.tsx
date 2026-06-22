@@ -1,8 +1,10 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+import { postMeDeeplink } from '@/api/me';
 import type { LaunchParams } from '@/common/types';
 
 const STORAGE_KEY = 'aera_launch_params';
+const BROADCAST_DEEPLINK_STATUS_KEY_PREFIX = 'aera_broadcast_deeplink:';
 
 type LaunchParamsContextValue = {
   params: LaunchParams;
@@ -25,6 +27,15 @@ function readFromUrl(): LaunchParams | null {
   const scenarioId = normalizeValue(search.get('scenario'));
   if (!characterName && !scenarioId) return null;
   return { characterName, scenarioId };
+}
+
+function readBroadcastRefFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  const search = new URLSearchParams(window.location.search);
+  const isBroad = search.get('broad')?.trim().toLowerCase() === 'true';
+  const ref = normalizeValue(search.get('ref'));
+  if (!isBroad || !ref) return null;
+  return ref;
 }
 
 function readFromStorage(): LaunchParams | null {
@@ -68,6 +79,25 @@ export function LaunchParamsProvider({
   });
 
   const value = useMemo(() => ({ params }), [params]);
+
+  useEffect(() => {
+    const ref = readBroadcastRefFromUrl();
+    if (!ref || typeof window === 'undefined') return;
+
+    const storageKey = `${BROADCAST_DEEPLINK_STATUS_KEY_PREFIX}${ref}`;
+    const currentStatus = window.sessionStorage.getItem(storageKey);
+    if (currentStatus === 'pending' || currentStatus === 'sent') return;
+
+    window.sessionStorage.setItem(storageKey, 'pending');
+
+    void postMeDeeplink(ref)
+      .then(() => {
+        window.sessionStorage.setItem(storageKey, 'sent');
+      })
+      .catch(() => {
+        window.sessionStorage.removeItem(storageKey);
+      });
+  }, []);
 
   return (
     <LaunchParamsContext.Provider value={value}>
