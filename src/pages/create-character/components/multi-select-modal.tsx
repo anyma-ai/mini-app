@@ -61,6 +61,11 @@ export function MultiSelectModal<T extends string>({
       return;
     }
 
+    if (limit === 1) {
+      onChange([nextValue]);
+      return;
+    }
+
     if (withoutClearValue.length >= limit) {
       return;
     }
@@ -103,6 +108,7 @@ export function MultiSelectModal<T extends string>({
           {filteredOptions.map((option) => {
             const active = value.includes(option.value);
             const disabled =
+              limit > 1 &&
               !active &&
               value.length >= limit &&
               option.value !== clearValue;
