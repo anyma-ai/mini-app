@@ -2,7 +2,7 @@ import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import logo from '@/assets/logo.png';
+import logo from '@/assets/logo.jpg';
 import {
   NoirBottomDock,
   type NoirDockItem,
@@ -15,6 +15,7 @@ import s from './MiniAppLayout.module.scss';
 const dockItems: NoirDockItem[] = [
   { label: 'Explore', path: '/explore', icon: 'explore' },
   { label: 'Magic', path: '/magic', icon: 'auto_awesome' },
+  { label: 'Create', path: '/my-girls', icon: 'add_box', create: true },
   { label: 'Shop', path: '/shop', icon: 'redeem' },
   { label: 'Profile', path: '/profile', icon: 'person' },
 ];
@@ -47,14 +48,22 @@ export function MiniAppLayout() {
   }, []);
 
   const pathname = location.pathname;
+  const searchParams = new URLSearchParams(location.search);
+  const isCustomCompanion =
+    searchParams.get('isCustom') === '1' ||
+    searchParams.get('isCustom') === 'true';
   const isSubscriptions = pathname === '/subscriptions';
   const isCompanion =
     pathname.startsWith('/companions/') || pathname.startsWith('/girls/');
-  const showDock = !isSubscriptions && !isCompanion;
+  const isCatalogCompanion = isCompanion && !isCustomCompanion;
+  const isCreateWizard = pathname === '/create-character';
+  const showDock =
+    !isSubscriptions && !isCatalogCompanion && !isCreateWizard;
   const activeDockPath =
     dockItems.find(
       (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
-    )?.path ?? '/explore';
+    )?.path ??
+    (isCreateWizard || isCustomCompanion ? '/my-girls' : '/explore');
 
   return (
     <div className={s.viewport}>
@@ -62,8 +71,14 @@ export function MiniAppLayout() {
         <div className={s.ambient} />
         {isSubscriptions ? (
           <NoirTopBar mode="back" title="Upgrade Premium" />
-        ) : isCompanion ? (
+        ) : isCatalogCompanion ? (
           <NoirTopBar mode="back" title="Scenarios" />
+        ) : isCreateWizard ? (
+          <NoirTopBar
+            mode="back"
+            title="Create"
+            onBack={() => navigate('/explore')}
+          />
         ) : (
           <NoirTopBar
             avatarSrc={logo}

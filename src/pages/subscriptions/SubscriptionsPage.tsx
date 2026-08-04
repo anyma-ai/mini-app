@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
@@ -67,8 +68,11 @@ function getRemainingLabel(subscribedUntil?: string | null) {
 export function SubscriptionsPage() {
   const launchParams = useLaunchParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useUser();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const returnTo = searchParams.get('returnTo');
 
   const {
     data: plans = [],
@@ -144,6 +148,9 @@ export function SubscriptionsPage() {
         TelegramWebApp.openInvoice(invoiceLink, (status) => {
           if (status === 'paid') {
             queryClient.invalidateQueries({ queryKey: ['me'] });
+            if (returnTo?.startsWith('/')) {
+              navigate(returnTo);
+            }
           }
         });
       } catch (error) {

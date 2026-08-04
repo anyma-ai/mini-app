@@ -1,11 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
-import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { createCharacterScenario, getCustomCharacters } from '@/api/custom-character';
 import { getGirls } from '@/api/girls';
+import type { CustomScenarioType } from '@/common/consts/character';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
-import type { IScenario } from '@/common/types';
+import type { ICharacter, IScenario } from '@/common/types';
+import { MultiSelectModal } from '@/pages/create-character/components/multi-select-modal';
+import { scenarioOptions } from '@/pages/create-character/create-character.data';
 
 import s from './CompanionPage.module.scss';
 
@@ -16,22 +20,52 @@ function parseDate(value: string) {
 
 export function CompanionPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const preferCustom =
+    searchParams.get('isCustom') === '1' ||
+    searchParams.get('isCustom') === 'true';
   const { characterType } = useCharacterTypeParam();
   const { id } = useParams<{ id: string }>();
-  const {
-    data: girls = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedScenario, setSelectedScenario] = useState<
+    CustomScenarioType | ''
+  >('');
+
+  const catalogQuery = useQuery({
     queryKey: ['girls', characterType],
     queryFn: () => getGirls(characterType),
   });
 
-  const companion = useMemo(
-    () => girls.find((girl) => girl.id === id),
-    [girls, id],
+  const customQuery = useQuery({
+    queryKey: ['custom-characters'],
+    queryFn: getCustomCharacters,
+  });
+
+  const catalogGirls = catalogQuery.data ?? [];
+  const customGirls = customQuery.data ?? [];
+
+  const companion = useMemo(() => {
+    if (preferCustom) {
+      return (
+        customGirls.find((girl) => girl.id === id) ??
+        catalogGirls.find((girl) => girl.id === id)
+      );
+    }
+
+    return (
+      catalogGirls.find((girl) => girl.id === id) ??
+      customGirls.find((girl) => girl.id === id)
+    );
+  }, [catalogGirls, customGirls, id, preferCustom]);
+
+  const isCustom = Boolean(
+    companion && customGirls.some((girl) => girl.id === companion.id),
   );
+
+  const isLoading = catalogQuery.isLoading || customQuery.isLoading;
+  const isError = catalogQuery.isError && customQuery.isError;
+  const error = catalogQuery.error ?? customQuery.error;
 
   const scenarios = useMemo(() => {
     if (!companion?.scenarios) return [];
@@ -42,6 +76,24 @@ export function CompanionPage() {
       return parseDate(b.createdAt) - parseDate(a.createdAt);
     });
   }, [companion]);
+
+  const createScenario = useMutation({
+    mutationFn: (scenario: CustomScenarioType) =>
+      createCharacterScenario(id!, { description: scenario }),
+    onSuccess: async (character) => {
+      setModalOpen(false);
+      setSelectedScenario('');
+      queryClient.setQueryData<ICharacter[]>(['custom-characters'], (prev) => {
+        if (!prev) return [character];
+        const exists = prev.some((item) => item.id === character.id);
+        if (!exists) return [...prev, character];
+        return prev.map((item) =>
+          item.id === character.id ? character : item,
+        );
+      });
+      await queryClient.invalidateQueries({ queryKey: ['custom-characters'] });
+    },
+  });
 
   const openScenario = (scenario: IScenario) => {
     const botUsername = import.meta.env.VITE_BOT_USERNAME;
@@ -95,7 +147,7 @@ export function CompanionPage() {
         {scenarios.map((scenario) => (
           <article key={scenario.id} className={s.scenario}>
             <img
-              src={scenario.promoImgHorizontalUrl || scenario.promoImgUrl}
+              src={scenario.promoImgHorizontalUrl || scenario.promoImgUrl || scenario.openingImageUrl}
               alt={scenario.name}
               className={s.scenarioImage}
             />
@@ -129,7 +181,53 @@ export function CompanionPage() {
             </div>
           </article>
         ))}
+
+        {isCustom ? (
+          <article className={`${s.scenario} ${s.newRoleplay}`}>
+            <div className={s.newRoleplayBody}>
+              <span className={s.newRoleplayIcon} aria-hidden="true">
+                <span className="material-symbols-outlined filled">
+                  auto_awesome
+                </span>
+              </span>
+              <h3 className={s.newRoleplayTitle}>New Roleplay</h3>
+              <p className={s.newRoleplayDescription}>
+                Get even more emotions with {companion.name}
+              </p>
+              <button
+                type="button"
+                className={s.newRoleplayButton}
+                disabled={createScenario.isPending}
+                onClick={() => setModalOpen(true)}
+              >
+                {createScenario.isPending ? 'Creating...' : 'Create New'}
+              </button>
+            </div>
+          </article>
+        ) : null}
       </section>
+
+      {isCustom ? (
+        <MultiSelectModal<CustomScenarioType>
+          actionLabel="Create New"
+          actionLoading={createScenario.isPending}
+          limit={1}
+          min={1}
+          open={modalOpen}
+          options={scenarioOptions}
+          title={`Create roleplay with ${companion.name}`}
+          value={selectedScenario ? [selectedScenario] : []}
+          onChange={(value) => setSelectedScenario(value[0] ?? '')}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedScenario('');
+          }}
+          onSubmit={() => {
+            if (!selectedScenario) return;
+            void createScenario.mutateAsync(selectedScenario);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

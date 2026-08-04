@@ -50,6 +50,7 @@ export interface IScenario {
   isActive: boolean;
   promoImgUrl: string;
   promoImgHorizontalUrl: string;
+  openingImageUrl?: string;
   isNew: boolean;
   createdAt: string;
   opensAfterId?: string;

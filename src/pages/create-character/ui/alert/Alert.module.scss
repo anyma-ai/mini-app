@@ -1,0 +1,48 @@
+.alert {
+  --alert-tone: hsl(var(--accent));
+  --alert-bg: hsl(var(--accent-muted));
+  --alert-border: hsl(var(--accent) / 0.26);
+
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--alert-border);
+  background: var(--alert-bg);
+  color: var(--color-text);
+}
+
+.icon {
+  color: var(--alert-tone);
+  display: inline-flex;
+  align-items: center;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  color: var(--alert-tone);
+  font-weight: 600;
+}
+
+.toneSuccess {
+  --alert-tone: hsl(var(--success));
+  --alert-bg: hsl(var(--success) / 0.12);
+  --alert-border: hsl(var(--success) / 0.3);
+}
+
+.toneWarning {
+  --alert-tone: hsl(var(--warning));
+  --alert-bg: hsl(var(--warning) / 0.14);
+  --alert-border: hsl(var(--warning) / 0.32);
+}
+
+.toneDanger {
+  --alert-tone: hsl(var(--danger));
+  --alert-bg: hsl(var(--danger) / 0.14);
+  --alert-border: hsl(var(--danger) / 0.34);
+}

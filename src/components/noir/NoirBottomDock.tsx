@@ -8,6 +8,7 @@ export type NoirDockItem = {
   label: string;
   path: string;
   icon: string;
+  create?: boolean;
 };
 
 type NoirBottomDockProps = {
@@ -19,28 +20,33 @@ export function NoirBottomDock({ items, activePath }: NoirBottomDockProps) {
   const navigate = useNavigate();
 
   return (
-    <nav className={s.dock}>
+    <nav aria-label="Mobile navigation" className={s.dock}>
       {items.map((item) => {
         const isActive = activePath === item.path;
+        const isCreate = Boolean(item.create);
 
         return (
           <button
             key={item.path}
             type="button"
-            className={cn(s.item, [], { [s.active]: isActive })}
+            aria-current={isActive ? 'page' : undefined}
+            className={cn(s.item, [], {
+              [s.active]: isActive,
+              [s.create]: isCreate,
+            })}
             onClick={() => navigate(item.path)}
           >
-            <span
-              className={cn('material-symbols-outlined', [s.itemIcon], {
-                filled: isActive,
-                [s.activeIcon]: isActive,
-              })}
-            >
-              {item.icon}
+            <span className={s.iconWrap} aria-hidden="true">
+              <span
+                className={cn('material-symbols-outlined', [s.itemIcon], {
+                  filled: isActive || isCreate,
+                  [s.activeIcon]: isActive && !isCreate,
+                })}
+              >
+                {item.icon}
+              </span>
             </span>
-            {/*<span className={cn(s.label, [], { [s.labelHidden]: isActive })}>*/}
-            {/*  {item.label}*/}
-            {/*</span>*/}
+            <span className={s.label}>{item.label}</span>
           </button>
         );
       })}

@@ -1,0 +1,9 @@
+export { default as BookHeartIcon } from './book-heart.svg?react';
+export { default as CheckIcon } from './check.svg?react';
+export { default as ChevronRightIcon } from './chevron-right.svg?react';
+export { default as IdCardIcon } from './id-card.svg?react';
+export { default as MessageIcon } from './message-circle.svg?react';
+export { default as PersonStandingIcon } from './person-standing.svg?react';
+export { default as SmileIcon } from './smile.svg?react';
+export { default as SparklesIcon } from './sparkles.svg?react';
+export { default as VenusIcon } from './venus.svg?react';
