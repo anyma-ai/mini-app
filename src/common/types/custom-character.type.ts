@@ -32,4 +32,4 @@ export interface CreateCharacterScenarioDto {
   description: CustomScenarioType;
 }
 
-export const CUSTOM_CHARACTER_PRICE = 99;
+export const CUSTOM_CHARACTER_PRICE = 55;

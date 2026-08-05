@@ -6,7 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPlanInvoice } from '@/api/payments';
 import { getPlans } from '@/api/plans';
 import oliviaImage from '@/assets/characters/olivia.webp';
-import { TgStarWhiteIcon } from '@/assets/icons';
+import { SparklesIcon, TgStarWhiteIcon } from '@/assets/icons';
 import { type IPlan, PlanPeriod, PlanType } from '@/common/types';
 import { cn } from '@/common/utils';
 import { useLaunchParams } from '@/context/LaunchParamsContext';
@@ -20,16 +20,40 @@ const periodOrder: Record<PlanPeriod, number> = {
   [PlanPeriod.Year]: 2,
 };
 
+const DISCOUNTS = [0, 0.25, 0.5, 0.75] as const;
+
+function getDiscount(index: number) {
+  return DISCOUNTS[Math.min(index, DISCOUNTS.length - 1)] ?? 0;
+}
+
+function getPeriodDays(plan: IPlan) {
+  const count = plan.periodCount ?? 1;
+  if (plan.period === PlanPeriod.Day) return count;
+  if (plan.period === PlanPeriod.Year) return count * 365;
+  return count * 30;
+}
+
+function getOriginalPrice(price: number, discount: number) {
+  if (discount <= 0) return null;
+  return Math.round(price / (1 - discount));
+}
+
+function getPricePerDay(plan: IPlan) {
+  const days = getPeriodDays(plan);
+  if (days <= 0) return plan.price;
+  return Math.round(plan.price / days);
+}
+
 function formatTitle(plan: IPlan) {
   const count = plan.periodCount ?? 1;
   return `${count} ${plan.period === PlanPeriod.Day ? 'Day' : plan.period === PlanPeriod.Month ? 'Month' : 'Year'}${count === 1 ? '' : 's'}`;
 }
 
 function getSubtitle(plan: IPlan, index: number) {
-  if (plan.isRecommended) return 'Best Value Connection';
-  if (index === 0) return 'Introductory Access';
-  if (plan.period === PlanPeriod.Year) return 'Ultimate Devotion';
-  return 'Curated Access';
+  if (plan.isRecommended) return 'Premium';
+  if (index === 0) return 'Trial';
+  if (plan.period === PlanPeriod.Year) return 'Elite';
+  return 'Standard';
 }
 
 function getFeatureList(plan: IPlan) {
@@ -37,17 +61,27 @@ function getFeatureList(plan: IPlan) {
     return ['Unlimited Chats', 'Explicit Content Access'];
   }
 
-  if (plan.period === PlanPeriod.Month) {
+  if (plan.period === PlanPeriod.Month && plan.periodCount === 1) {
     return [
-      'Everything from above',
+      'Unlimited Chats',
+      'Explicit Content Access',
+      'Hotter Videos',
+    ];
+  }
+
+  if (plan.period === PlanPeriod.Month && plan.periodCount === 3) {
+    return [
+      'Unlimited Chats',
+      'Explicit Content Access',
+      'Hotter Videos',
       'Priority Response Speed',
-      'Deep Immersion Mode',
     ];
   }
 
   return [
-    'Everything from above',
-    'Early Access to Scenarios',
+    'Unlimited Chats',
+    'Explicit Content Access',
+    'Hotter Videos',
     'Premium Scenarios',
   ];
 }
@@ -195,6 +229,10 @@ export function SubscriptionsPage() {
           {plans.map((plan, index) => {
             const isRecommended = plan.isRecommended;
             const isSelected = plan.id === selectedPlan?.id;
+            const discount = getDiscount(index);
+            const originalPrice = getOriginalPrice(plan.price, discount);
+            const pricePerDay = getPricePerDay(plan);
+            const savePercent = Math.round(discount * 100);
 
             return (
               <div
@@ -222,12 +260,32 @@ export function SubscriptionsPage() {
                         {getSubtitle(plan, index)}
                       </div>
                     </div>
-                    <div>
+                    <div className={s.planPriceBlock}>
                       <div className={s.planPriceRow}>
+                        {originalPrice != null ? (
+                          <span className={s.planStrike}>
+                            <TgStarWhiteIcon className={s.planStrikeIcon} />
+                            <span>{originalPrice}</span>
+                          </span>
+                        ) : null}
                         <TgStarWhiteIcon className={s.planPriceIcon} />
                         <div className={s.planPrice}>{plan.price}</div>
                       </div>
+                      {savePercent > 0 ? (
+                        <span className={s.planSave}>SAVE {savePercent}%</span>
+                      ) : null}
                     </div>
+                  </div>
+
+                  <div className={s.planMeta}>
+                    <span className={s.planAir}>
+                      <SparklesIcon className={s.planAirIcon} aria-hidden />
+                      <span>+{plan.air} Credits</span>
+                    </span>
+                    <span className={s.planPerDay}>
+                      <TgStarWhiteIcon className={s.planPerDayIcon} />
+                      <span>{pricePerDay} / day</span>
+                    </span>
                   </div>
 
                   <div className={s.featureList}>
@@ -289,7 +347,7 @@ export function SubscriptionsPage() {
         <div className={s.footerInner}>
           <button type="button" className={s.cta} onClick={handleCheckout}>
             Claim Access
-            <span className={`material-symbols-outlined filled`}>bolt</span>
+            <SparklesIcon className={s.ctaIcon} aria-hidden />
           </button>
         </div>
       </footer>

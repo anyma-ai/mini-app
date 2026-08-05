@@ -90,7 +90,6 @@
 }
 
 .planFeatured {
-
 }
 
 .planSelected {
@@ -113,7 +112,11 @@
   min-height: 28px;
   padding: 0 16px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   color: var(--color-primary-foreground);
   display: inline-flex;
   align-items: center;
@@ -131,7 +134,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 4px;
 }
 
 .planTitle {
@@ -146,6 +149,13 @@
   margin-top: 4px;
   color: var(--color-text-muted);
   font-size: 12px;
+}
+
+.planPriceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 
 .planPrice {
@@ -170,16 +180,76 @@
 }
 
 .planStrike {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--color-text-dim);
-  font-size: 10px;
-  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
   text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.planStrikeIcon {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+}
+
+.planSave {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planPerDay {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.planPerDayIcon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.planMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.planAir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(248, 245, 253, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.planAirIcon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
 }
 
 .featureList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .feature {
@@ -187,7 +257,7 @@
   align-items: center;
   gap: 12px;
   color: rgba(248, 245, 253, 0.92);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -229,7 +299,7 @@
 }
 
 .lockedIcon {
-  color: var(--color-primary)
+  color: var(--color-primary);
 }
 
 .trust {
@@ -281,22 +351,47 @@
   width: 100%;
   min-height: 64px;
   border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-fixed-dim));
-  color: var(--color-primary-foreground);
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-primary-fixed-dim)
+  );
+  color: #fff;
   font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 700;
   box-shadow: 0 10px 40px rgba(255, 137, 171, 0.3);
   transition: transform var(--transition-base);
+  animation: ctaPulse 2.4s ease-in-out infinite;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px
+  gap: 8px;
+}
+
+.ctaIcon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: #fff;
 }
 
 .cta:active {
   transform: scale(0.96);
+  animation: none;
+}
+
+@keyframes ctaPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 40px rgba(255, 137, 171, 0.3);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 12px 48px rgba(255, 137, 171, 0.48);
+  }
 }
 
 .footerNote {
