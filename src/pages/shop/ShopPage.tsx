@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { buyGift, getGifts, sendGift } from '@/api/gifts';
 import { createPlanInvoice } from '@/api/payments';
@@ -14,9 +14,19 @@ import { useUser } from '@/context/UserContext';
 
 import s from './ShopPage.module.scss';
 
+function getSafeReturnTo(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) {
+    return null;
+  }
+
+  return value;
+}
+
 export function ShopPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = getSafeReturnTo(searchParams.get('returnTo'));
   const queryClient = useQueryClient();
   const launchParams = useLaunchParams();
   const { user } = useUser();
@@ -153,6 +163,9 @@ export function ShopPage() {
         TelegramWebApp.openInvoice(invoiceLink, (status) => {
           if (status === 'paid') {
             queryClient.invalidateQueries({ queryKey: ['me'] });
+            if (returnTo) {
+              navigate(returnTo);
+            }
           }
         });
       } catch (error) {

@@ -1,11 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import {
-  createCustomCharacter,
-  getCustomCharacters,
-} from '@/api/custom-character';
+import { createCustomCharacter } from '@/api/custom-character';
 import {
   CHARACTER_FETISH_EMOJI,
   CHARACTER_FETISH_LABEL,
@@ -52,13 +49,15 @@ import { ChevronRightIcon, SparklesIcon } from './icons';
 import { Alert, Button, Field, Input, Typography } from './ui';
 import { usePersistedCreateCharacterDraft } from './use-persisted-create-character-draft';
 
-function buildCreateCharacterUpgradeUrl() {
+const CREATE_CHARACTER_RETURN_TO =
+  '/create-character?paywall=create-character';
+
+function buildCreateCharacterShopUrl() {
   const query = new URLSearchParams({
-    paywall: 'create-character',
-    returnTo: '/create-character?paywall=create-character',
+    returnTo: CREATE_CHARACTER_RETURN_TO,
   });
 
-  return `/subscriptions?${query.toString()}`;
+  return `/shop?${query.toString()}`;
 }
 
 export function CreateCharacterPage() {
@@ -67,15 +66,6 @@ export function CreateCharacterPage() {
   const [searchParams] = useSearchParams();
   const resumeCreate = searchParams.get('paywall') === 'create-character';
   const { user, refresh } = useUser();
-  const { data: customCharacters = [], isFetched: customCharactersFetched } =
-    useQuery({
-      queryKey: ['custom-characters'],
-      queryFn: getCustomCharacters,
-    });
-  const isFirstCustomCharacter = customCharactersFetched
-    ? customCharacters.length === 0
-    : true;
-  const createPrice = isFirstCustomCharacter ? 0 : CUSTOM_CHARACTER_PRICE;
   const createCharacter = useMutation({
     mutationFn: createCustomCharacter,
   });
@@ -130,21 +120,16 @@ export function CreateCharacterPage() {
       return;
     }
 
-    if (createPrice === 0 || (user.air ?? 0) >= createPrice) {
+    if ((user.air ?? 0) >= CUSTOM_CHARACTER_PRICE) {
       await submitCreateCharacter();
       return;
     }
 
-    if (!user.isSubscribed) {
-      navigate(buildCreateCharacterUpgradeUrl());
-      return;
-    }
-
-    navigate('/shop');
+    // Draft is already persisted — shop returnTo resumes this last step.
+    navigate(buildCreateCharacterShopUrl());
   }, [
     createCharacter.isPending,
     createDraftIsValid,
-    createPrice,
     navigate,
     submitCreateCharacter,
     user,
@@ -497,17 +482,13 @@ export function CreateCharacterPage() {
                 {isFirstStep ? (
                   'Begin'
                 ) : isLastStep ? (
-                  createPrice > 0 ? (
-                    <>
-                      Create Her{' '}
-                      <span className={styles.ctaPrice}>
-                        <SparklesIcon aria-hidden="true" />
-                        <span>{CUSTOM_CHARACTER_PRICE}</span>
-                      </span>
-                    </>
-                  ) : (
-                    'Create Her'
-                  )
+                  <>
+                    Create Her{' '}
+                    <span className={styles.ctaPrice}>
+                      <SparklesIcon aria-hidden="true" />
+                      <span>{CUSTOM_CHARACTER_PRICE}</span>
+                    </span>
+                  </>
                 ) : (
                   'Next'
                 )}
