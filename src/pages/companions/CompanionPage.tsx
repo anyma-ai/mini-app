@@ -1,13 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { createCharacterScenario, getCustomCharacters } from '@/api/custom-character';
 import { getGirls } from '@/api/girls';
+import { SparklesIcon } from '@/assets/icons';
 import type { CustomScenarioType } from '@/common/consts/character';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
-import type { ICharacter, IScenario } from '@/common/types';
+import {
+  CUSTOM_SCENARIO_PRICE,
+  type ICharacter,
+  type IScenario,
+} from '@/common/types';
+import { useUser } from '@/context/UserContext';
 import { MultiSelectModal } from '@/pages/create-character/components/multi-select-modal';
 import { scenarioOptions } from '@/pages/create-character/create-character.data';
 
@@ -18,9 +24,20 @@ function parseDate(value: string) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
+function buildCreateScenarioUpgradeUrl(characterId: string) {
+  const returnTo = `/companions/${characterId}?isCustom=1`;
+  const query = new URLSearchParams({
+    paywall: 'create-scenario',
+    returnTo,
+  });
+
+  return `/subscriptions?${query.toString()}`;
+}
+
 export function CompanionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, refresh } = useUser();
   const [searchParams] = useSearchParams();
   const preferCustom =
     searchParams.get('isCustom') === '1' ||
@@ -92,8 +109,29 @@ export function CompanionPage() {
         );
       });
       await queryClient.invalidateQueries({ queryKey: ['custom-characters'] });
+      await refresh();
     },
   });
+
+  const handleCreateScenario = useCallback(async () => {
+    if (!selectedScenario || createScenario.isPending || !user || !id) {
+      return;
+    }
+
+    if ((user.air ?? 0) >= CUSTOM_SCENARIO_PRICE) {
+      await createScenario.mutateAsync(selectedScenario);
+      return;
+    }
+
+    setModalOpen(false);
+
+    if (!user.isSubscribed) {
+      navigate(buildCreateScenarioUpgradeUrl(id));
+      return;
+    }
+
+    navigate('/shop');
+  }, [createScenario, id, navigate, selectedScenario, user]);
 
   const openScenario = (scenario: IScenario) => {
     const botUsername = import.meta.env.VITE_BOT_USERNAME;
@@ -202,6 +240,10 @@ export function CompanionPage() {
               >
                 {createScenario.isPending ? 'Creating...' : 'Create New'}
               </button>
+              <span className={s.newRoleplayPrice}>
+                <SparklesIcon aria-hidden="true" />
+                <span>{CUSTOM_SCENARIO_PRICE}</span>
+              </span>
             </div>
           </article>
         ) : null}
@@ -223,8 +265,7 @@ export function CompanionPage() {
             setSelectedScenario('');
           }}
           onSubmit={() => {
-            if (!selectedScenario) return;
-            void createScenario.mutateAsync(selectedScenario);
+            void handleCreateScenario();
           }}
         />
       ) : null}

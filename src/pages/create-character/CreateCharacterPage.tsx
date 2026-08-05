@@ -502,7 +502,7 @@ export function CreateCharacterPage() {
                       Create Her{' '}
                       <span className={styles.ctaPrice}>
                         <SparklesIcon aria-hidden="true" />
-                        <span>{createPrice}</span>
+                        <span>{CUSTOM_CHARACTER_PRICE}</span>
                       </span>
                     </>
                   ) : (

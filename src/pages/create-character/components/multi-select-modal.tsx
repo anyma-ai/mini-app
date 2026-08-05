@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { cn } from '@/common/utils';
 
@@ -20,7 +20,7 @@ export function MultiSelectModal<T extends string>({
   title,
   value,
 }: {
-  actionLabel?: string;
+  actionLabel?: ReactNode;
   actionLoading?: boolean;
   clearValue?: T;
   limit: number;

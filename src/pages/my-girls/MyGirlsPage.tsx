@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getCustomCharacters } from '@/api/custom-character';
-import type { ICharacter } from '@/common/types';
+import { SparklesIcon } from '@/assets/icons';
+import { CUSTOM_CHARACTER_PRICE, type ICharacter } from '@/common/types';
 
 import s from './MyGirlsPage.module.scss';
 
@@ -90,6 +91,10 @@ export function MyGirlsPage() {
               Your sweet fantasy awaits you
             </p>
             <span className={s.createGirlButton}>Create New</span>
+            <span className={s.createGirlPrice}>
+              <SparklesIcon aria-hidden="true" />
+              <span>{CUSTOM_CHARACTER_PRICE}</span>
+            </span>
           </div>
         </button>
       </section>

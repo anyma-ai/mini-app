@@ -21,7 +21,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, 170px);
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .featuredRow {
@@ -172,7 +172,7 @@
 
 .scenarioMessageButton {
   flex-shrink: 0;
-  padding: 5px
+  padding: 5px;
 }
 
 .scenarioMeta {

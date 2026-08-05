@@ -7,7 +7,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 8px;
 }
 
 .tile {
@@ -163,6 +163,20 @@
   font-size: 12px;
   font-weight: 700;
   box-shadow: var(--shadow-aura);
+}
+
+.createGirlPrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.createGirlPrice svg {
+  width: 14px;
+  height: 14px;
 }
 
 .createGirl:active {
