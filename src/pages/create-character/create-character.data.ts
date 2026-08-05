@@ -14,8 +14,6 @@ import {
   CHARACTER_PERSONALITY_EMOJI,
   CHARACTER_PERSONALITY_LABEL,
   CHARACTER_TYPE_MEDIA,
-  CUSTOM_SCENARIO_EMOJI,
-  CUSTOM_SCENARIO_LABEL,
   CharacterBodyType,
   CharacterBreastSize,
   CharacterEthnicity,
@@ -26,9 +24,13 @@ import {
   CharacterHobby,
   CharacterPersonality,
   CharacterType,
+  CUSTOM_SCENARIO_EMOJI,
+  CUSTOM_SCENARIO_LABEL,
   CustomScenarioType,
 } from '@/common/consts/character';
 
+import { mapMediaOptions, mapTextOptions } from './create-character.helpers';
+import type { Draft, WizardStepId } from './create-character.types';
 import {
   BookHeartIcon,
   IdCardIcon,
@@ -36,8 +38,6 @@ import {
   SmileIcon,
   VenusIcon,
 } from './icons';
-import { mapMediaOptions, mapTextOptions } from './create-character.helpers';
-import type { Draft, WizardStepId } from './create-character.types';
 
 export const MIN_AGE = 18;
 export const MAX_AGE = 55;
@@ -63,7 +63,7 @@ export const DEFAULT_DRAFT: Draft = {
   bodyType: CharacterBodyType.Average,
   breastSize: CharacterBreastSize.Medium,
   buttSize: ButtSize.Medium,
-  name: 'Jessica',
+  name: '',
   age: 23,
   personality: [CharacterPersonality.Sweet],
   hobbies: [CharacterHobby.Dancing],
