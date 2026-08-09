@@ -59,8 +59,11 @@ export function CompanionPage() {
     queryFn: getCustomCharacters,
   });
 
-  const catalogGirls = catalogQuery.data ?? [];
-  const customGirls = customQuery.data ?? [];
+  const catalogGirls = useMemo(
+    () => catalogQuery.data ?? [],
+    [catalogQuery.data],
+  );
+  const customGirls = useMemo(() => customQuery.data ?? [], [customQuery.data]);
 
   const companion = useMemo(() => {
     if (preferCustom) {
@@ -183,7 +186,15 @@ export function CompanionPage() {
       <section className={s.stack}>
         <h2 className={s.sectionTitle}>Choose Your Path</h2>
         {scenarios.map((scenario) => (
-          <article key={scenario.id} className={s.scenario}>
+          <article
+            key={scenario.id}
+            className={s.scenario}
+            onClick={() => {
+              if (scenario.isActive && !isCustom) {
+                navigate(`/scenarios/${scenario.id}`);
+              }
+            }}
+          >
             <img
               src={scenario.promoImgHorizontalUrl || scenario.promoImgUrl || scenario.openingImageUrl}
               alt={scenario.name}
@@ -202,15 +213,26 @@ export function CompanionPage() {
                   <button
                     type="button"
                     className={s.action}
-                    onClick={() => openScenario(scenario)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (isCustom) {
+                        openScenario(scenario);
+                        return;
+                      }
+
+                      navigate(`/scenarios/${scenario.id}`);
+                    }}
                   >
-                    Start Scenario
+                    {isCustom ? 'Start Scenario' : 'Open Scenario'}
                   </button>
                 ) : (
                   <button
                     type="button"
                     className={s.secondaryAction}
-                    onClick={() => navigate('/subscriptions')}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate('/subscriptions');
+                    }}
                   >
                     Unlock Intimacy
                   </button>

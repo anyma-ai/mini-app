@@ -2,7 +2,9 @@
   color-scheme: dark;
 
   --color-background: #0e0e13;
-  --color-surface: #0e0e13;
+  --background-color: hsl(var(--bg));
+  --color-bg: hsl(var(--bg));
+  --color-surface: #131318;
   --color-surface-low: #131318;
   --color-surface-mid: #19191f;
   --color-surface-high: #1f1f26;
@@ -42,6 +44,18 @@
     rgba(248, 245, 253, 0.03) 0%,
     rgba(31, 31, 38, 0.98) 100%
   );
+  --color-page-glow:
+    radial-gradient(
+      circle at top left,
+      rgb(255 137 171 / 0.16),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgb(187 131 255 / 0.14),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #0e0e13 0%, #131318 100%);
 
   --shadow-glass: 0 4px 40px rgba(255, 77, 141, 0.06);
   --shadow-aura: 0 18px 40px rgba(255, 137, 171, 0.18);
@@ -76,6 +90,7 @@
 
   --topbar-height: 64px;
   --header-height: var(--topbar-height);
+  --mobile-bottom-nav-height: 55px;
   --transition-base: 300ms ease-out;
   --transition-fast: 180ms ease;
   --transition: 220ms ease;
@@ -83,9 +98,6 @@
   --page-max-width: 480px;
 
   /* Create-character / sweetme atom compatibility */
-  --font-promo: var(--font-display);
-  --font-content: var(--font-body);
-  --font-ui: var(--font-body);
   --color-text-soft: #e4e1e9;
   --color-accent: var(--color-primary);
   --color-accent-strong: var(--color-primary-strong);
@@ -105,8 +117,8 @@
   --shadow-neon-strong: 0 0 30px rgb(255 137 171 / 0.28);
   --z-overlay: 20;
   --z-modal: 30;
-  --ls-tight: -0.03em;
-  --text-md: var(--text-body-md);
+  --ls-tight: 0;
+  --text-md: 14px;
   --lh-normal: 1.5;
   --input-border-focus: var(--color-primary);
   --input-focus-shadow: 0 0 0 3px rgb(255 137 171 / 0.22);
@@ -131,43 +143,18 @@
 
 html {
   min-height: 100%;
-  background: var(--color-background);
+  background: var(--background-color);
 }
 
 body {
   min-height: 100%;
-  background:
-    radial-gradient(circle at top right, rgba(255, 82, 143, 0.12), transparent 26%),
-    radial-gradient(circle at 15% 40%, rgba(187, 131, 255, 0.1), transparent 28%),
-    var(--color-background);
+  background: var(--color-page-glow);
   color: var(--color-text);
 }
 
 body::before,
 body::after {
-  content: '';
-  position: fixed;
-  inset: auto;
-  border-radius: 999px;
-  pointer-events: none;
-  filter: blur(120px);
-  z-index: 0;
-}
-
-body::before {
-  top: -120px;
-  right: -120px;
-  width: 320px;
-  height: 320px;
-  background: rgba(255, 137, 171, 0.12);
-}
-
-body::after {
-  bottom: 12%;
-  left: -140px;
-  width: 360px;
-  height: 360px;
-  background: rgba(187, 131, 255, 0.1);
+  content: none;
 }
 
 a {

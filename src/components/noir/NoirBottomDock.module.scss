@@ -2,7 +2,7 @@
   position: fixed;
   bottom: 0;
   left: 50%;
-  z-index: 20;
+  z-index: calc(var(--z-overlay) - 1);
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: end;
@@ -43,8 +43,8 @@
   color: var(--color-text-muted);
   text-align: center;
   transition:
-    color var(--transition-base),
-    transform var(--transition-base);
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .iconWrap {
@@ -55,16 +55,16 @@
   justify-content: center;
   border-radius: var(--radius-pill);
   transition:
-    width var(--transition-base),
-    background-color var(--transition-base),
-    box-shadow var(--transition-base);
+    width var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.itemIcon {
+.icon {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 19px;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
 }
 
 .label {
@@ -82,11 +82,7 @@
 }
 
 .active .iconWrap {
-  color: var(--color-primary);
-}
-
-.activeIcon {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 .create {
@@ -99,9 +95,14 @@
 }
 
 .create.active .iconWrap {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 .item:active {
   transform: scale(0.96);
+}
+
+.item:focus-visible {
+  outline: 2px solid hsl(var(--focus-ring));
+  outline-offset: 2px;
 }

@@ -1,5 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 
+import {
+  CircleUserRoundIcon,
+  CompassIcon,
+  GiftIcon,
+  SquarePlayIcon,
+  SquarePlusIcon,
+} from '@/assets/icons';
 import { cn } from '@/common/utils';
 
 import s from './NoirBottomDock.module.scss';
@@ -16,6 +23,14 @@ type NoirBottomDockProps = {
   activePath: string;
 };
 
+const iconMap = {
+  add_box: SquarePlusIcon,
+  auto_awesome: SquarePlayIcon,
+  explore: CompassIcon,
+  person: CircleUserRoundIcon,
+  redeem: GiftIcon,
+};
+
 export function NoirBottomDock({ items, activePath }: NoirBottomDockProps) {
   const navigate = useNavigate();
 
@@ -24,6 +39,7 @@ export function NoirBottomDock({ items, activePath }: NoirBottomDockProps) {
       {items.map((item) => {
         const isActive = activePath === item.path;
         const isCreate = Boolean(item.create);
+        const Icon = iconMap[item.icon as keyof typeof iconMap];
 
         return (
           <button
@@ -37,14 +53,7 @@ export function NoirBottomDock({ items, activePath }: NoirBottomDockProps) {
             onClick={() => navigate(item.path)}
           >
             <span className={s.iconWrap} aria-hidden="true">
-              <span
-                className={cn('material-symbols-outlined', [s.itemIcon], {
-                  filled: isActive || isCreate,
-                  [s.activeIcon]: isActive && !isCreate,
-                })}
-              >
-                {item.icon}
-              </span>
+              {Icon ? <Icon className={s.icon} /> : null}
             </span>
             <span className={s.label}>{item.label}</span>
           </button>

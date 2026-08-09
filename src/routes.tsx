@@ -7,6 +7,7 @@ import { ExplorePage } from '@/pages/explore/ExplorePage';
 import { MagicPage } from '@/pages/magic/MagicPage';
 import { MyGirlsPage } from '@/pages/my-girls/MyGirlsPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { ScenarioDetailsPage } from '@/pages/scenarios/ScenarioDetailsPage';
 import { ShopPage } from '@/pages/shop/ShopPage';
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage';
 
@@ -35,6 +36,7 @@ export function AppRoutes() {
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
         <Route path="/companions/:id" element={<CompanionPage />} />
         <Route path="/girls/:id" element={<CompanionPage />} />
+        <Route path="/scenarios/:id" element={<ScenarioDetailsPage />} />
 
         <Route path="/girls" element={<Navigate to="/explore" replace />} />
         <Route path="/gifts" element={<ShopRedirect />} />

@@ -57,6 +57,68 @@ export interface IScenario {
   scenarioProgress?: IScenarioProgress;
 }
 
+export enum ContentItemType {
+  Image = 'image',
+  Video = 'video',
+}
+
+export enum Explicitness {
+  Sexy = 'sexy',
+  Nudes = 'nudes',
+  Explicit = 'explicit',
+}
+
+export type ScenarioDetails = IScenario & {
+  isUnlocked: boolean;
+  promoVideoUrl?: string | null;
+  character: Pick<
+    ICharacter,
+    'id' | 'name' | 'avatarUrl' | 'description' | 'personality' | 'type'
+  > & {
+    age?: number;
+  };
+};
+
+export type ScenarioMedia = {
+  id: string;
+  url: string;
+  previewUrl: string | null;
+  type: ContentItemType;
+  stage?: RoleplayStage | number | null;
+  explicitness?: Explicitness;
+  isBlurred: boolean;
+  createdAt: string;
+};
+
+export type ScenarioMediaTotals = {
+  images: number;
+  videos: number;
+};
+
+export type Paginated<T> = {
+  data: T[];
+  total: number;
+  skip: number;
+  take: number;
+};
+
+export type UnlockScenarioResponse = {
+  scenario?: ScenarioDetails;
+  user?: import('./user.type').IUser;
+};
+
+export type UnblurScenarioVideoResponse =
+  | ScenarioMedia
+  | { item?: ScenarioMedia; video?: ScenarioMedia; user?: import('./user.type').IUser }
+  | { data: ScenarioMedia }
+  | {
+      data: {
+        item?: ScenarioMedia;
+        video?: ScenarioMedia;
+        user?: import('./user.type').IUser;
+      };
+    };
+
 export enum StoryType {
   Photo = 'photo',
   Video = 'video',

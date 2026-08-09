@@ -250,18 +250,9 @@ export function ShopPage() {
 
   return (
     <div className={s.page}>
-      <section className={s.hero} id={'hero'}>
-        <h1 className={s.title}>The Boutique</h1>
-        <p className={s.description}>
-          Enhance your connection with exclusive gifts, and the rarest SweetMe
-          access.
-        </p>
-      </section>
-
       <section className={s.section} id="credit-packs">
         <div className={s.sectionHeader}>
           <h2 className={s.sectionTitle}>Credit Packs</h2>
-          <div className={s.sectionMeta}>Best Value</div>
         </div>
 
         <div className={`${s.packs} app-hide-scrollbar`}>

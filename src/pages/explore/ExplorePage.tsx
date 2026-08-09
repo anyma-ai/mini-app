@@ -787,7 +787,6 @@ export function ExplorePage() {
     <div className={s.page}>
       {storyGroups.length > 0 ? (
         <section className={s.storiesSection}>
-          <div className={s.sectionLabel}>Live Moments</div>
           <div className={`${s.stories} app-hide-scrollbar`}>
             {storyGroups.map((group) => {
               const hasUnseenStory = group.stories.some(

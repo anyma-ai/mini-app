@@ -56,6 +56,7 @@ export function MiniAppLayout() {
   const isCompanion =
     pathname.startsWith('/companions/') || pathname.startsWith('/girls/');
   const isCatalogCompanion = isCompanion && !isCustomCompanion;
+  const isScenarioDetails = pathname.startsWith('/scenarios/');
   const isCreateWizard = pathname === '/create-character';
   const showDock =
     !isSubscriptions && !isCatalogCompanion && !isCreateWizard;
@@ -63,7 +64,11 @@ export function MiniAppLayout() {
     dockItems.find(
       (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
     )?.path ??
-    (isCreateWizard || isCustomCompanion ? '/my-girls' : '/explore');
+    (isScenarioDetails
+      ? ''
+      : isCreateWizard || isCustomCompanion
+        ? '/my-girls'
+        : '/explore');
 
   return (
     <div className={s.viewport}>

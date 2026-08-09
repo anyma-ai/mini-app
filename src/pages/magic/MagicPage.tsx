@@ -1,11 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import TelegramWebApp from '@twa-dev/sdk';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getGirls } from '@/api/girls';
 import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
-import type { IScenario } from '@/common/types';
 
 // import { cn } from '@/common/utils';
 // import { CharacterTypeSwitch } from '@/components/noir';
@@ -54,19 +52,6 @@ export function MagicPage() {
   );
   const lockedEntry = scenarioEntries.find((entry) => !entry.scenario.isActive);
 
-  const openScenario = (scenario: IScenario) => {
-    const botUsername = import.meta.env.VITE_BOT_USERNAME;
-
-    if (!botUsername || !scenario.slug) {
-      return;
-    }
-
-    TelegramWebApp.openTelegramLink(
-      `https://t.me/${botUsername}?start=${scenario.slug}`,
-    );
-    TelegramWebApp.close();
-  };
-
   if (isLoading) {
     return <div className={s.empty}>Curating your immersive paths...</div>;
   }
@@ -97,7 +82,19 @@ export function MagicPage() {
 
       <div className={s.stack}>
         {activeEntries.map(({ scenario }) => (
-          <section key={scenario.id} className={s.card}>
+          <section
+            key={scenario.id}
+            role="button"
+            tabIndex={0}
+            className={s.card}
+            onClick={() => navigate(`/scenarios/${scenario.id}`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                navigate(`/scenarios/${scenario.id}`);
+              }
+            }}
+          >
             <img
               src={scenario.promoImgUrl}
               alt={scenario.name}
@@ -125,9 +122,12 @@ export function MagicPage() {
               <button
                 type="button"
                 className={s.footerButton}
-                onClick={() => openScenario(scenario)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  navigate(`/scenarios/${scenario.id}`);
+                }}
               >
-                Start Scenario
+                Open Scenario
               </button>
             </div>
           </section>
