@@ -3,8 +3,10 @@ import type {
   Explicitness,
   Paginated,
   ScenarioDetails,
+  ScenarioListItem,
   ScenarioMedia,
   ScenarioMediaTotals,
+  ScenarioPromo,
   UnblurScenarioVideoResponse,
   UnlockScenarioResponse,
 } from '@/common/types';
@@ -19,6 +21,21 @@ export type ScenarioMediaQuery = {
   explicitness?: Explicitness;
   skip?: number;
   take?: number;
+};
+
+export type ScenarioListQuery = {
+  ageFrom?: number;
+  ageTo?: number;
+  bodyType?: string;
+  breastSize?: string;
+  characterId?: string;
+  ethnicity?: string;
+  gender?: string;
+  hairColor?: string;
+  search?: string;
+  skip?: number;
+  take?: number;
+  type?: string;
 };
 
 export class ApiResponseError extends Error {
@@ -104,10 +121,25 @@ function buildMediaQuery(params: ScenarioMediaQuery = {}) {
   return query ? `?${query}` : '';
 }
 
+function buildListQuery(params: ScenarioListQuery = {}) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null || value === '') return;
+    search.set(key, String(value));
+  });
+
+  const query = search.toString();
+  return query ? `?${query}` : '';
+}
+
 export const scenarioKeys = {
   all: ['scenarios'] as const,
   details: () => [...scenarioKeys.all, 'detail'] as const,
   detail: (id: string) => [...scenarioKeys.details(), id] as const,
+  lists: () => [...scenarioKeys.all, 'list'] as const,
+  list: (params: ScenarioListQuery = {}) =>
+    [...scenarioKeys.lists(), params] as const,
   mediaLists: () => [...scenarioKeys.all, 'media'] as const,
   media: (
     id: string,
@@ -116,13 +148,30 @@ export const scenarioKeys = {
   ) => [...scenarioKeys.mediaLists(), id, type, params] as const,
   mediaTotals: (id: string) =>
     [...scenarioKeys.all, 'media-totals', id] as const,
+  promo: (id: string) => [...scenarioKeys.all, 'promo', id] as const,
 };
+
+export async function getScenarios(params: ScenarioListQuery = {}) {
+  const response = await apiFetch(`${SCENARIOS_PATH}${buildListQuery(params)}`);
+  return parseJsonResponse<Paginated<ScenarioListItem>>(
+    response,
+    'Failed to load scenarios',
+  );
+}
 
 export async function getScenarioDetails(id: string) {
   const response = await apiFetch(`${SCENARIOS_PATH}/${id}`);
   return parseJsonResponse<ScenarioDetails>(
     response,
     'Failed to load scenario',
+  );
+}
+
+export async function getScenarioPromo(id: string) {
+  const response = await apiFetch(`${SCENARIOS_PATH}/${id}/promo`);
+  return parseJsonResponse<ScenarioPromo>(
+    response,
+    'Failed to load scenario promo',
   );
 }
 

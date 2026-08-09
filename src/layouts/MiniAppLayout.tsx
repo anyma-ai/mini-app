@@ -57,9 +57,9 @@ export function MiniAppLayout() {
     pathname.startsWith('/companions/') || pathname.startsWith('/girls/');
   const isCatalogCompanion = isCompanion && !isCustomCompanion;
   const isScenarioDetails = pathname.startsWith('/scenarios/');
+  const isExplore = pathname === '/explore';
   const isCreateWizard = pathname === '/create-character';
-  const showDock =
-    !isSubscriptions && !isCatalogCompanion && !isCreateWizard;
+  const showDock = !isSubscriptions && !isCatalogCompanion;
   const activeDockPath =
     dockItems.find(
       (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
@@ -78,12 +78,6 @@ export function MiniAppLayout() {
           <NoirTopBar mode="back" title="Upgrade Premium" />
         ) : isCatalogCompanion ? (
           <NoirTopBar mode="back" title="Scenarios" />
-        ) : isCreateWizard ? (
-          <NoirTopBar
-            mode="back"
-            title="Create"
-            onBack={() => navigate('/explore')}
-          />
         ) : (
           <NoirTopBar
             avatarSrc={logo}
@@ -92,7 +86,11 @@ export function MiniAppLayout() {
           />
         )}
 
-        <main className={`${s.content} ${showDock ? '' : s.focused}`}>
+        <main
+          className={`${s.content} ${showDock ? '' : s.focused} ${
+            isExplore ? s.noTopPadding : ''
+          } ${isExplore ? s.compactXPadding : ''}`}
+        >
           <Outlet />
         </main>
 

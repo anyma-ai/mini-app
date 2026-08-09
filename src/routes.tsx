@@ -3,7 +3,8 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { MiniAppLayout } from '@/layouts/MiniAppLayout';
 import { CompanionPage } from '@/pages/companions/CompanionPage';
 import { CreateCharacterPage } from '@/pages/create-character/CreateCharacterPage';
-import { ExplorePage } from '@/pages/explore/ExplorePage';
+import { ExplorePage as LegacyExplorePage } from '@/pages/explore/ExplorePage';
+import { ExplorePage } from '@/pages/explore-new/ExplorePage';
 import { MagicPage } from '@/pages/magic/MagicPage';
 import { MyGirlsPage } from '@/pages/my-girls/MyGirlsPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
@@ -28,6 +29,7 @@ export function AppRoutes() {
       <Route element={<MiniAppLayout />}>
         <Route path="/" element={<Navigate to="/explore" replace />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/explore-old" element={<LegacyExplorePage />} />
         <Route path="/magic" element={<MagicPage />} />
         <Route path="/my-girls" element={<MyGirlsPage />} />
         <Route path="/create-character" element={<CreateCharacterPage />} />

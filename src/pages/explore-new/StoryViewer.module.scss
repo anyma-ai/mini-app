@@ -1,0 +1,260 @@
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) + 20);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(3 3 6 / 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  animation: viewerIn 180ms ease;
+}
+
+.slide {
+  position: relative;
+}
+
+.frame {
+  position: relative;
+  width: min(480px, calc((100dvh - 32px) * 0.5625));
+  max-width: 100%;
+  height: min(854px, calc(100dvh - 32px));
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-md);
+  background: #050507;
+  box-shadow: 0 32px 100px rgb(0 0 0 / 0.72);
+}
+
+.navigation {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: rgb(255 255 255 / 0.72);
+  transform: translateY(-50%);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.navigation svg {
+  width: 32px;
+  height: 32px;
+}
+
+.navigation:hover,
+.navigation:focus-visible {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.navigationPrevious {
+  right: calc(100% + var(--space-4));
+}
+
+.navigationNext {
+  left: calc(100% + var(--space-4));
+}
+
+.media,
+.gestureLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.media {
+  display: grid;
+  place-items: center;
+  background: #050507;
+}
+
+.mediaAsset {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaError {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.gestureLayer {
+  z-index: 1;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.chrome {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.66), transparent);
+}
+
+.progress {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.28);
+}
+
+.progressFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.header,
+.character,
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.character {
+  min-width: 0;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 2px solid rgb(255 255 255 / 0.82);
+  border-radius: var(--radius-round);
+  object-fit: cover;
+}
+
+.name {
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.7);
+}
+
+.actions {
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.action {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: #fff;
+}
+
+.actionBar {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-3);
+  left: var(--space-5);
+  z-index: 3;
+}
+
+.messageAction {
+  width: 100%;
+  height: 44px;
+  min-width: 0;
+  padding: 0 var(--space-4);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: var(--radius-pill);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.1), transparent 50%),
+    rgb(11 11 16 / 0.62);
+  color: #fff;
+  box-shadow:
+    0 16px 42px rgb(0 0 0 / 0.38),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  -webkit-backdrop-filter: blur(4px) saturate(145%);
+  backdrop-filter: blur(4px) saturate(145%);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  text-align: left;
+}
+
+.messageAction:disabled {
+  opacity: 0.55;
+}
+
+@media (max-width: 700px) {
+  .viewer {
+    padding: 0;
+  }
+
+  .slide,
+  .frame {
+    width: 100%;
+    height: 100dvh;
+  }
+
+  .frame {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .navigation {
+    display: none;
+  }
+
+  .chrome {
+    padding: max(var(--space-4), env(safe-area-inset-top)) var(--space-4)
+      var(--space-4);
+  }
+
+  .actionBar {
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes viewerIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

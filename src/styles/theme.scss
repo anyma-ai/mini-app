@@ -44,6 +44,12 @@
     rgba(248, 245, 253, 0.03) 0%,
     rgba(31, 31, 38, 0.98) 100%
   );
+  --color-card-overlay: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0) 0%,
+    rgb(0 0 0 / 0.32) 42%,
+    rgb(0 0 0 / 0.82) 100%
+  );
   --color-page-glow:
     radial-gradient(
       circle at top left,
@@ -88,8 +94,9 @@
       var(--tg-safe-area-inset-bottom, 0px)
   );
 
-  --topbar-height: 64px;
+  --topbar-height: 60px;
   --header-height: var(--topbar-height);
+  --top-padding: 24px;
   --mobile-bottom-nav-height: 55px;
   --transition-base: 300ms ease-out;
   --transition-fast: 180ms ease;

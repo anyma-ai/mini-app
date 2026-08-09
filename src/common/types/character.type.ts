@@ -95,6 +95,31 @@ export type ScenarioMediaTotals = {
   videos: number;
 };
 
+export type ScenarioListItem = {
+  id: string;
+  slug: string;
+  name: string;
+  character: Pick<
+    ICharacter,
+    'id' | 'name' | 'avatarUrl' | 'personality'
+  > & {
+    age: number;
+    promoImgUrl?: string | null;
+  };
+  promoImgUrl: string;
+  promoVideoUrl: string | null;
+  openingImageUrl: string;
+  shortDescription: string;
+  description: string;
+  createdAt: string;
+};
+
+export type ScenarioPromo = {
+  characterScenarios: ScenarioListItem[];
+  promoItems: ScenarioMedia[];
+  blurredPromoItems: ScenarioMedia[];
+};
+
 export type Paginated<T> = {
   data: T[];
   total: number;
@@ -124,10 +149,16 @@ export enum StoryType {
   Video = 'video',
 }
 
+export type StoryCharacter = Pick<ICharacter, 'id' | 'name' | 'avatarUrl'> & {
+  age?: number;
+  promoImgUrl?: string | null;
+};
+
 export interface IStory {
   id: string;
   type: StoryType;
   fileUrl: string;
   idx: number;
   characterId: string;
+  character?: StoryCharacter;
 }
