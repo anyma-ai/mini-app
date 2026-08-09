@@ -40,29 +40,98 @@
 }
 
 .wordmark {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  // text-transform: uppercase;
-  background: var(--gradient-brand);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  display: inline-flex;
+  max-width: 140px;
+  min-width: 0;
+  align-items: baseline;
+  gap: 2px;
+  overflow: hidden;
+  margin-top: -2px;
+  opacity: 1;
+  transform: translateX(0);
+  white-space: nowrap;
+}
+
+.wordmarkPrimary,
+.wordmarkSecondary {
+  font-family: var(--font-promo);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.wordmarkPrimary {
+  color: hsl(var(--accent-active));
+}
+
+.wordmarkSecondary {
+  color: var(--color-text);
+}
+
+.actions {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.upgradeButton {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background:
+    radial-gradient(
+      circle at 92% 50%,
+      rgb(189 130 255 / 0.82) 0%,
+      rgb(189 130 255 / 0.34) 34%,
+      transparent 68%
+    ),
+    linear-gradient(100deg, #ff91b2 0%, #ff5b99 100%);
+  color: hsl(var(--accent-foreground));
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow:
+    0 10px 27px rgb(255 77 141 / 0.25),
+    0 0 19px rgb(187 131 255 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+  transition:
+    transform var(--transition-fast),
+    background-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.upgradeButton svg {
+  width: 14px;
+  height: 14px;
+  margin-bottom: -2px;
+}
+
+.upgradeButton:active {
+  transform: scale(0.96);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 2px;
   border-radius: var(--radius-pill);
-  background: var(--glass-surface-strong);
-  border: 1px solid var(--color-outline);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
   transition:
     transform var(--transition-base),
     opacity var(--transition-base),
-    background-color var(--transition-base);
+    color var(--transition-base);
 }
 
 .pill:active {
@@ -71,16 +140,45 @@
 
 .pillIcon {
   color: var(--color-primary);
-  font-size: 18px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .pillLabel {
   color: var(--color-primary);
-  font-family: var(--font-display);
-  font-size: var(--text-label-sm);
+  font-family: var(--font-ui);
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  line-height: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .upgradeButton:hover {
+    background:
+      radial-gradient(
+        circle at 92% 50%,
+        rgb(201 148 255 / 0.9) 0%,
+        rgb(201 148 255 / 0.4) 36%,
+        transparent 70%
+      ),
+      linear-gradient(100deg, #ffa2bf 0%, #ff6aa2 100%);
+  }
+}
+
+@media (max-width: 390px) {
+  .actions {
+    gap: 6px;
+  }
+
+  .upgradeButton {
+    padding: 0 11px;
+  }
+
+  .pill {
+    padding: 0;
+  }
 }
 
 .backButton {

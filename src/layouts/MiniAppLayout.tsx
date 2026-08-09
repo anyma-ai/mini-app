@@ -14,7 +14,7 @@ import s from './MiniAppLayout.module.scss';
 
 const dockItems: NoirDockItem[] = [
   { label: 'Explore', path: '/explore', icon: 'explore' },
-  { label: 'Magic', path: '/magic', icon: 'auto_awesome' },
+  { label: 'Collection', path: '/collection', icon: 'image' },
   { label: 'Create', path: '/my-girls', icon: 'add_box', create: true },
   { label: 'Shop', path: '/shop', icon: 'redeem' },
   { label: 'Profile', path: '/profile', icon: 'person' },
@@ -83,6 +83,8 @@ export function MiniAppLayout() {
             avatarSrc={logo}
             credits={user?.air ?? 0}
             onCreditsClick={() => navigate('/shop')}
+            onUpgradeClick={() => navigate('/subscriptions')}
+            showUpgrade={Boolean(user && !user.isSubscribed)}
           />
         )}
 

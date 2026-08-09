@@ -210,6 +210,18 @@
   background: #51484d;
 }
 
+.seeContentCell:nth-child(2) .slideMedia {
+  transform: scale(1.08) translateX(-6%);
+}
+
+.seeContentCell:nth-child(3) .slideMedia {
+  transform: scale(1.08) translateY(-5%);
+}
+
+.seeContentCell:nth-child(4) .slideMedia {
+  transform: scale(1.1) translate(-4%, -4%);
+}
+
 .seeContentFallbackCell {
   position: absolute;
   inset: 0;
@@ -388,13 +400,17 @@
 
 .otherCard:hover,
 .otherCard:focus-visible,
-.createRoleplayCard:hover,
-.createRoleplayCard:focus-visible {
+.createRoleplayCard:not(:disabled):hover,
+.createRoleplayCard:not(:disabled):focus-visible {
   border-color: rgb(255 255 255 / 0.16);
   box-shadow:
     0 14px 30px rgb(0 0 0 / 0.28),
     0 0 16px rgb(255 137 171 / 0.1);
   transform: scale(1.02);
+}
+
+.createRoleplayCard:disabled {
+  cursor: default;
 }
 
 .otherCardImage,
@@ -472,23 +488,11 @@
   gap: 5px;
   padding: 0 11px;
   border-radius: 999px;
-  background:
-    radial-gradient(
-      circle at 92% 50%,
-      rgb(189 130 255 / 0.82) 0%,
-      rgb(189 130 255 / 0.34) 34%,
-      transparent 68%
-    ),
-    linear-gradient(100deg, #ff91b2 0%, #ff5b99 100%);
-  color: hsl(var(--accent-foreground));
+  background: rgb(255 255 255 / 0.12);
+  color: rgb(255 255 255 / 0.72);
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
-}
-
-.createRoleplayCta svg {
-  width: 13px;
-  height: 13px;
 }
 
 @media (max-width: 700px) {

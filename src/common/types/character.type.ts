@@ -62,6 +62,12 @@ export enum ContentItemType {
   Video = 'video',
 }
 
+export enum ContentItemStatus {
+  Pending = 'pending',
+  Ready = 'ready',
+  Failed = 'failed',
+}
+
 export enum Explicitness {
   Sexy = 'sexy',
   Nudes = 'nudes',
@@ -88,6 +94,32 @@ export type ScenarioMedia = {
   explicitness?: Explicitness;
   isBlurred: boolean;
   createdAt: string;
+};
+
+export type IContentItem = {
+  id: string;
+  type: ContentItemType;
+  isSaved: boolean;
+  isBlurred: boolean;
+  isFree: boolean;
+  status: ContentItemStatus;
+  url?: string | null;
+  previewUrl?: string | null;
+  createdAt: string;
+};
+
+export type ICollectionItem = IContentItem & {
+  explicitness: Explicitness;
+  scenario: {
+    id: string;
+    name: string;
+    promoImgUrl: string;
+  };
+  character: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+  };
 };
 
 export type ScenarioMediaTotals = {

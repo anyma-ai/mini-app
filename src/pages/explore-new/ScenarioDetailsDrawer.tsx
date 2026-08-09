@@ -15,7 +15,6 @@ import { getScenarioPromo, scenarioKeys } from '@/api/scenarios';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  SparklesIcon,
 } from '@/assets/icons';
 import {
   ContentItemType,
@@ -69,6 +68,7 @@ type PromoSlide =
   | {
       id: string;
       items: ScenarioMedia[];
+      scenario: ScenarioListItem;
       type: 'see-content';
     };
 
@@ -169,10 +169,10 @@ function CreateRoleplayCard({
 }) {
   return (
     <button
-      aria-label={`Create your own story with ${characterName}`}
+      aria-label={`Your roleplay with ${characterName} coming soon`}
       className={styles.createRoleplayCard}
+      disabled
       type="button"
-      onClick={() => undefined}
     >
       <img alt="" className={styles.otherCardImage} src={imageUrl} />
       <span className={styles.createRoleplayShade} />
@@ -182,9 +182,7 @@ function CreateRoleplayCard({
           Create your own story with {characterName}
         </span>
         <span className={styles.createRoleplayCta}>
-          <span>Create</span>
-          <SparklesIcon aria-hidden="true" />
-          <span>5</span>
+          <span>Soon</span>
         </span>
       </span>
     </button>
@@ -205,6 +203,11 @@ function buildPromoSlides(
 
   if (!promo) return slides;
 
+  const seeContentItems = [
+    ...promo.blurredPromoItems,
+    ...promo.promoItems,
+  ].slice(0, 4);
+
   slides.push(
     ...promo.promoItems.map((item, mediaIndex) => ({
       id: `media-${item.id}`,
@@ -214,13 +217,12 @@ function buildPromoSlides(
     })),
   );
 
-  if (promo.blurredPromoItems.length > 0) {
-    slides.push({
-      id: 'see-content',
-      items: promo.blurredPromoItems.slice(0, 4),
-      type: 'see-content',
-    });
-  }
+  slides.push({
+    id: 'see-content',
+    items: seeContentItems,
+    scenario,
+    type: 'see-content',
+  });
 
   return slides;
 }
@@ -342,6 +344,7 @@ function ScenarioPromoCarousel({
                   <div className={styles.seeContentGrid} aria-hidden="true">
                     {Array.from({ length: 4 }, (_, itemIndex) => {
                       const item = slide.items[itemIndex];
+                      const fallbackUrl = getScenarioCardImageUrl(slide.scenario);
 
                       return (
                         <div
@@ -353,6 +356,12 @@ function ScenarioPromoCarousel({
                               alt=""
                               className={styles.slideMedia}
                               src={item.url}
+                            />
+                          ) : fallbackUrl ? (
+                            <img
+                              alt=""
+                              className={styles.slideMedia}
+                              src={fallbackUrl}
                             />
                           ) : (
                             <span className={styles.seeContentFallbackCell} />

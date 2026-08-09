@@ -4,6 +4,7 @@ import {
   CircleUserRoundIcon,
   CompassIcon,
   GiftIcon,
+  ImageIcon,
   SquarePlayIcon,
   SquarePlusIcon,
 } from '@/assets/icons';
@@ -27,6 +28,7 @@ const iconMap = {
   add_box: SquarePlusIcon,
   auto_awesome: SquarePlayIcon,
   explore: CompassIcon,
+  image: ImageIcon,
   person: CircleUserRoundIcon,
   redeem: GiftIcon,
 };
