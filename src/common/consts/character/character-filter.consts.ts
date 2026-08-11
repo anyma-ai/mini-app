@@ -1,4 +1,4 @@
-import { CharacterEthnicity, CharacterHairColor, CharacterFilterTag, CharacterBodyType, CharacterBreastSize, CharacterType, CharacterGender } from "./character-appearance.consts"
+import { CharacterBodyType, CharacterBreastSize, CharacterEthnicity, CharacterFilterTag, CharacterGender, CharacterHairColor, CharacterType } from "./character-appearance.consts"
 
 
 export interface CharacterFilter {
@@ -36,5 +36,5 @@ export const CHARACTER_FILTER_PARAMS: Record<CharacterFilterTag, object> = {
     [CharacterFilterTag.Redhead]: { hairColor: CharacterHairColor.Redhead },
     [CharacterFilterTag.Milf]: { ageFrom: 30 },
     [CharacterFilterTag.Arab]: { ethnicity: CharacterEthnicity.Arabian },
-    [CharacterFilterTag.Black]: { hairColor: CharacterEthnicity.Afro },
+    [CharacterFilterTag.Black]: { ethnicity: CharacterEthnicity.Afro },
 }
