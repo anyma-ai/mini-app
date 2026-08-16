@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { ChevronLeftIcon, ChevronRightIcon } from '@/assets/icons';
 import { StoryType } from '@/common/types';
@@ -89,6 +90,7 @@ export function StoryViewer({
   onClose,
   onStartChat,
 }: StoryViewerProps) {
+  const { t } = useTranslation();
   const current = getCurrentStory(groups, viewer);
 
   useEffect(() => {
@@ -130,7 +132,9 @@ export function StoryViewer({
 
   return createPortal(
     <div
-      aria-label={`${current.group.character.name} stories`}
+      aria-label={t('storyViewer.stories', {
+        name: current.group.character.name,
+      })}
       aria-modal="true"
       className={styles.viewer}
       role="dialog"
@@ -164,6 +168,7 @@ function StoryViewerSlide({
   onClose,
   onStartChat,
 }: StoryViewerSlideProps) {
+  const { t } = useTranslation();
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -392,7 +397,7 @@ function StoryViewerSlide({
   return (
     <div className={styles.slide}>
       <button
-        aria-label="Previous story"
+        aria-label={t('storyViewer.previous')}
         className={`${styles.navigation} ${styles.navigationPrevious}`}
         type="button"
         onClick={() => navigate('previous')}
@@ -403,7 +408,9 @@ function StoryViewerSlide({
       <div className={styles.frame}>
         <div className={styles.media}>
           {hasMediaError ? (
-            <div className={styles.mediaError}>Unable to load this story.</div>
+            <div className={styles.mediaError}>
+              {t('storyViewer.mediaError')}
+            </div>
           ) : currentStory.type === StoryType.Video ? (
             <video
               autoPlay
@@ -470,7 +477,9 @@ function StoryViewerSlide({
             <div className={styles.actions}>
               {currentStory.type === StoryType.Video ? (
                 <button
-                  aria-label={isMuted ? 'Unmute story' : 'Mute story'}
+                  aria-label={
+                    isMuted ? t('storyViewer.unmute') : t('storyViewer.mute')
+                  }
                   className={styles.action}
                   type="button"
                   onClick={() => setIsMuted((currentMuted) => !currentMuted)}
@@ -480,7 +489,7 @@ function StoryViewerSlide({
               ) : null}
 
               <button
-                aria-label="Close stories"
+                aria-label={t('storyViewer.close')}
                 className={styles.action}
                 type="button"
                 onClick={onClose}
@@ -499,20 +508,22 @@ function StoryViewerSlide({
             onPointerUp={(event) => event.stopPropagation()}
           >
             <button
-              aria-label={`Text ${currentGroup.character.name}`}
+              aria-label={t('storyViewer.textCharacter', {
+                name: currentGroup.character.name,
+              })}
               className={styles.messageAction}
               disabled={isStartingChat}
               type="button"
               onClick={() => void handleStartChat()}
             >
-              Text her...
+              {t('storyViewer.text')}
             </button>
           </div>
         ) : null}
       </div>
 
       <button
-        aria-label="Next story"
+        aria-label={t('storyViewer.next')}
         className={`${styles.navigation} ${styles.navigationNext}`}
         type="button"
         onClick={() => navigate('next')}

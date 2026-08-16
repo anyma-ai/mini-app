@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+
 import s from './Alert.module.scss'
 
 type AlertTone = 'info' | 'success' | 'warning' | 'danger'

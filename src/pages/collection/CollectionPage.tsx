@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -41,28 +42,35 @@ const COLLECTION_TAKE = 100;
 const ALL_VALUE = 'all';
 
 const COLLECTION_TABS = [
-  { label: 'All', value: 'all' },
-  { label: 'Photos', value: ContentItemType.Image },
-  { label: 'Videos', value: ContentItemType.Video },
-] satisfies Array<{ label: string; value: CollectionTab }>;
+  { labelKey: 'collection.all', value: 'all' },
+  { labelKey: 'collection.photos', value: ContentItemType.Image },
+  { labelKey: 'collection.videos', value: ContentItemType.Video },
+] satisfies Array<{ labelKey: string; value: CollectionTab }>;
 
 const EXPLICITNESS_FILTERS = [
-  { label: 'Sexy', value: Explicitness.Sexy },
-  { label: 'Nude', value: Explicitness.Nudes },
-  { label: 'Explicit', value: Explicitness.Explicit },
+  { labelKey: 'character.filter.sexy', value: Explicitness.Sexy },
+  { labelKey: 'character.filter.nude', value: Explicitness.Nudes },
+  { labelKey: 'character.filter.explicit', value: Explicitness.Explicit },
 ] as const;
 
-function getExplicitnessLabel(explicitness: Explicitness | null) {
-  if (explicitness === Explicitness.Nudes) return 'nude';
+function getExplicitnessLabel(
+  explicitness: Explicitness | null,
+  t: (key: string) => string,
+) {
+  if (explicitness === Explicitness.Nudes) return t('character.filter.nude');
+  if (explicitness === Explicitness.Sexy) return t('character.filter.sexy');
+  if (explicitness === Explicitness.Explicit) {
+    return t('character.filter.explicit');
+  }
 
-  return explicitness ?? '';
+  return '';
 }
 
-function getMediaLabel(activeTab: CollectionTab) {
-  if (activeTab === ContentItemType.Image) return 'photos';
-  if (activeTab === ContentItemType.Video) return 'videos';
+function getMediaLabel(activeTab: CollectionTab, t: (key: string) => string) {
+  if (activeTab === ContentItemType.Image) return t('collection.photos');
+  if (activeTab === ContentItemType.Video) return t('collection.videos');
 
-  return 'media';
+  return t('collection.media');
 }
 
 function buildFilteredEmptyTitle({
@@ -71,30 +79,33 @@ function buildFilteredEmptyTitle({
   explicitness,
   savedOnly,
   scenarioName,
+  t,
 }: {
   activeTab: CollectionTab;
   characterName?: string;
   explicitness: Explicitness | null;
   savedOnly: boolean;
   scenarioName?: string;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const parts = [
-    'No',
-    savedOnly ? 'saved' : '',
-    getExplicitnessLabel(explicitness),
-    getMediaLabel(activeTab),
+    savedOnly ? t('common.saved').toLowerCase() : '',
+    getExplicitnessLabel(explicitness, t),
+    getMediaLabel(activeTab, t),
   ].filter(Boolean);
   const scope = [
-    characterName ? `from "${characterName}"` : '',
-    scenarioName ? `in "${scenarioName}" scenario` : '',
+    characterName ? t('collection.fromCharacter', { name: characterName }) : '',
+    scenarioName ? t('collection.inScenario', { name: scenarioName }) : '',
   ].filter(Boolean);
 
-  return [...parts, ...scope].join(' ');
+  return t('collection.noFiltered', {
+    filters: [...parts, ...scope].join(' '),
+  });
 }
 
-function CollectionSkeleton() {
+function CollectionSkeleton({ label }: { label: string }) {
   return (
-    <div aria-label="Loading collection" className={styles.grid}>
+    <div aria-label={label} className={styles.grid}>
       {Array.from({ length: 12 }, (_, index) => (
         <div className={styles.skeletonTile} key={index} />
       ))}
@@ -224,6 +235,7 @@ function CollectionTile({
   item: ICollectionItem;
   onOpen: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const imageUrl = item.url ?? item.scenario.promoImgUrl;
 
@@ -246,7 +258,9 @@ function CollectionTile({
 
   return (
     <button
-      aria-label={item.isBlurred ? 'Locked collection item' : 'Collection item'}
+      aria-label={
+        item.isBlurred ? t('collection.lockedItem') : t('common.collectionItem')
+      }
       className={cn(styles.tile, [], {
         [styles.tileLocked]: item.isBlurred,
       })}
@@ -302,6 +316,7 @@ function CollectionTile({
 }
 
 export function CollectionPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { error: userError, isLoading: isUserLoading, user } = useUser();
   const isReady = !isUserLoading && Boolean(user);
@@ -369,7 +384,11 @@ export function CollectionPage() {
     [items],
   );
   const characterOptions = [
-    { label: 'All characters', text: 'All characters', value: ALL_VALUE },
+    {
+      label: t('collection.allCharacters'),
+      text: t('collection.allCharacters'),
+      value: ALL_VALUE,
+    },
     ...((charactersQuery.data?.data ?? []).map((character) => ({
       imageUrl: character.avatarUrl,
       label: (
@@ -380,7 +399,11 @@ export function CollectionPage() {
     }))),
   ];
   const scenarioOptions = [
-    { label: 'All scenarios', text: 'All scenarios', value: ALL_VALUE },
+    {
+      label: t('collection.allScenarios'),
+      text: t('collection.allScenarios'),
+      value: ALL_VALUE,
+    },
     ...((scenariosQuery.data?.data ?? []).map((scenario) => ({
       imageUrl: scenario.promoImgUrl,
       label: (
@@ -411,11 +434,12 @@ export function CollectionPage() {
     savedOnly,
     scenarioName:
       scenarioId === ALL_VALUE ? undefined : String(selectedScenarioName),
+    t,
   });
   const errorMessage =
     contentQuery.error instanceof Error
       ? contentQuery.error.message
-      : userError || 'Failed to load collection.';
+      : userError || t('collection.failed');
 
   return (
     <section className={styles.page}>
@@ -423,14 +447,14 @@ export function CollectionPage() {
         <div className={styles.toolbar}>
           <div className={styles.scopeFilters}>
             <CollectionSelect
-              ariaLabel="All characters"
+              ariaLabel={t('collection.allCharacters')}
               options={characterOptions}
               value={characterId}
               onChange={setCharacterId}
               onOpen={() => setShouldLoadCharacters(true)}
             />
             <CollectionSelect
-              ariaLabel="All scenarios"
+              ariaLabel={t('collection.allScenarios')}
               options={scenarioOptions}
               value={scenarioId}
               onChange={setScenarioId}
@@ -438,7 +462,10 @@ export function CollectionPage() {
             />
           </div>
 
-          <div aria-label="Collection filters" className={styles.quickFilters}>
+          <div
+            aria-label={t('collection.ariaFilters')}
+            className={styles.quickFilters}
+          >
             {EXPLICITNESS_FILTERS.map((filter) => {
               const isActive = explicitness === filter.value;
 
@@ -456,7 +483,7 @@ export function CollectionPage() {
                     )
                   }
                 >
-                  {filter.label}
+                  {t(filter.labelKey)}
                 </button>
               );
             })}
@@ -469,7 +496,7 @@ export function CollectionPage() {
               onClick={() => setSavedOnly((current) => !current)}
             >
               <HeartIcon aria-hidden="true" />
-              Saved
+              {t('common.saved')}
             </button>
           </div>
         </div>
@@ -491,21 +518,23 @@ export function CollectionPage() {
                 type="button"
                 onClick={() => setActiveTab(tab.value)}
               >
-                {tab.label}
+              {t(tab.labelKey)}
               </button>
             );
           })}
         </div>
       ) : null}
 
-      {isUserLoading ? <CollectionSkeleton /> : null}
+      {isUserLoading ? <CollectionSkeleton label={t('collection.loading')} /> : null}
 
-      {isReady && contentQuery.isLoading ? <CollectionSkeleton /> : null}
+      {isReady && contentQuery.isLoading ? (
+        <CollectionSkeleton label={t('collection.loading')} />
+      ) : null}
 
       {isReady && contentQuery.isError ? (
         <div className={styles.collectionError}>
           <div>
-            <h2>Unable to load collection</h2>
+            <h2>{t('collection.unable')}</h2>
             <p>{errorMessage}</p>
           </div>
           <button
@@ -515,7 +544,7 @@ export function CollectionPage() {
               void contentQuery.refetch();
             }}
           >
-            Retry
+            {t('common.retry')}
           </button>
         </div>
       ) : null}
@@ -528,7 +557,7 @@ export function CollectionPage() {
               type="button"
               onClick={() => navigate('/explore')}
             >
-              Start Chat
+              {t('collection.startChat')}
             </button>
           }
         />
@@ -547,7 +576,7 @@ export function CollectionPage() {
                 type="button"
                 onClick={() => navigate('/explore')}
               >
-                Start Chat
+                {t('collection.startChat')}
               </button>
               <button
                 className={styles.secondaryButton}
@@ -560,11 +589,11 @@ export function CollectionPage() {
                   setSavedOnly(false);
                 }}
               >
-                Clear filters
+                {t('collection.clearFilters')}
               </button>
             </div>
           }
-          description="Try changing filters or start a new chat to unlock more media."
+          description={t('collection.emptyFiltered')}
           title={filteredEmptyTitle}
         />
       ) : null}
@@ -586,7 +615,7 @@ export function CollectionPage() {
       ) : null}
 
       {isReady && !hasNoCollectionItems && contentQuery.isFetchingNextPage ? (
-        <CollectionSkeleton />
+        <CollectionSkeleton label={t('collection.loading')} />
       ) : null}
 
       {isReady && !hasNoCollectionItems && contentQuery.hasNextPage ? (
@@ -599,7 +628,7 @@ export function CollectionPage() {
               void contentQuery.fetchNextPage();
             }}
           >
-            Load more
+            {t('common.loadMore')}
           </button>
         </div>
       ) : null}

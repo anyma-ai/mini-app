@@ -16,6 +16,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import {
   useNavigate,
   useParams,
@@ -89,14 +90,14 @@ type GalleryItem = {
 };
 
 const MEDIA_TABS = [
-  { label: 'Photos', value: ContentItemType.Image },
-  { label: 'Videos', value: ContentItemType.Video },
+  { labelKey: 'collection.photos', value: ContentItemType.Image },
+  { labelKey: 'collection.videos', value: ContentItemType.Video },
 ] as const;
 
 const EXPLICITNESS_FILTERS = [
-  { label: 'Sexy', value: Explicitness.Sexy },
-  { label: 'Nude', value: Explicitness.Nudes },
-  { label: 'Explicit', value: Explicitness.Explicit },
+  { labelKey: 'character.filter.sexy', value: Explicitness.Sexy },
+  { labelKey: 'character.filter.nude', value: Explicitness.Nudes },
+  { labelKey: 'character.filter.explicit', value: Explicitness.Explicit },
 ] as const;
 
 const SWIPE_THRESHOLD_PX = 48;
@@ -115,11 +116,16 @@ function getTabQueryValue(tab: ScenarioMediaTab) {
 
 function formatPersonality(
   personality: ScenarioDetails['character']['personality'],
+  t: (key: string, options?: Record<string, unknown>) => string,
 ) {
   if (!Array.isArray(personality) || personality.length === 0) return '';
 
   return personality
-    .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
+    .map((item) =>
+      t(`character.personality.${item}`, {
+        defaultValue: item.charAt(0).toUpperCase() + item.slice(1),
+      }),
+    )
     .join(', ');
 }
 
@@ -230,6 +236,7 @@ function MediaTile({
   onLockedVideo: () => void;
   onOpen: () => void;
 }) {
+  const { t } = useTranslation();
   const previewUrl = type === ContentItemType.Video ? media.previewUrl : null;
 
   return (
@@ -238,7 +245,11 @@ function MediaTile({
       className={cn(s.tile, [], {
         [s.tileLocked]: media.isBlurred,
       })}
-      aria-label={media.isBlurred ? 'Locked media' : 'Open media'}
+      aria-label={
+        media.isBlurred
+          ? t('scenarioDetails.lockedMedia')
+          : t('scenarioDetails.openMedia')
+      }
       onClick={() => {
         if (!media.isBlurred) {
           onOpen();
@@ -297,6 +308,7 @@ function ModalShell({
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -317,7 +329,7 @@ function ModalShell({
         <button
           type="button"
           className={s.modalClose}
-          aria-label="Close modal"
+          aria-label={t('common.closeModal')}
           onClick={onClose}
         >
           <CloseIcon />
@@ -344,6 +356,7 @@ function FullUnlockModal({
   onClose: () => void;
   onUnlock: () => void;
 }) {
+  const { i18n, t } = useTranslation();
   return (
     <ModalShell onClose={onClose}>
       <div className={s.unlockCard}>
@@ -356,24 +369,29 @@ function FullUnlockModal({
         <div className={s.unlockBody}>
           <h2 className={s.unlockTitle}>{scenario.name}</h2>
           <p className={s.unlockDescription}>
-            Unlock all the explicit content of {scenario.character.name} in{' '}
-            {scenario.name}.
+            {t('scenarioDetails.unlockDescription', {
+              character: scenario.character.name,
+              scenario: scenario.name,
+            })}
           </p>
 
-          <div className={s.unlockTotals} aria-label="Scenario content totals">
+          <div
+            className={s.unlockTotals}
+            aria-label={t('scenarioDetails.contentTotals')}
+          >
             <span className={s.unlockTotal}>
               <ImageIcon aria-hidden="true" />
-              <strong>{imageTotal.toLocaleString('en-US')}</strong>
-              <small>Images</small>
+              <strong>{imageTotal.toLocaleString(i18n.language)}</strong>
+              <small>{t('scenarioDetails.images')}</small>
             </span>
             <span className={s.unlockTotal}>
               <SquarePlayIcon aria-hidden="true" />
-              <strong>{videoTotal.toLocaleString('en-US')}</strong>
-              <small>Videos</small>
+              <strong>{videoTotal.toLocaleString(i18n.language)}</strong>
+              <small>{t('scenarioDetails.videos')}</small>
             </span>
           </div>
 
-          <span className={s.futureBadge}>+ all future content</span>
+          <span className={s.futureBadge}>{t('scenarioDetails.allFuture')}</span>
 
           <button
             type="button"
@@ -383,11 +401,11 @@ function FullUnlockModal({
           >
             <LockIcon aria-hidden="true" />
             <span>
-              Unlock all for{' '}
+              {t('scenarioDetails.unlockAll')}{' '}
               <span className={s.unlockPrice}>
                 <SparklesIcon aria-hidden="true" />
                 <strong>
-                  {SCENARIO_CONTENT_PRICE.toLocaleString('en-US')}
+                  {SCENARIO_CONTENT_PRICE.toLocaleString(i18n.language)}
                 </strong>
               </span>
             </span>
@@ -409,6 +427,7 @@ function VideoUnlockModal({
   onClose: () => void;
   onUnlock: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <ModalShell onClose={onClose}>
       <div className={s.videoUnlockCard}>
@@ -422,14 +441,14 @@ function VideoUnlockModal({
           <span className={s.videoUnlockIcon} aria-hidden="true">
             <PlayIcon />
           </span>
-          <h2 className={s.videoUnlockTitle}>Full video</h2>
+          <h2 className={s.videoUnlockTitle}>{t('scenarioDetails.fullVideo')}</h2>
           <button
             type="button"
             className={s.videoUnlockButton}
             disabled={isPending}
             onClick={onUnlock}
           >
-            <span>Unlock</span>
+            <span>{t('common.unlock', { defaultValue: 'Unlock' })}</span>
             <SparklesIcon aria-hidden="true" />
             <strong>{VIDEO_PRICE}</strong>
           </button>
@@ -468,6 +487,7 @@ function FullscreenGallery({
   onActiveChange: (id: string | null) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const activeIndex = activeId
     ? items.findIndex((item) => item.id === activeId)
     : -1;
@@ -629,7 +649,7 @@ function FullscreenGallery({
       className={s.gallery}
       role="dialog"
       aria-modal="true"
-      aria-label="Media gallery"
+      aria-label={t('gallery.media')}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -641,7 +661,7 @@ function FullscreenGallery({
       <button
         type="button"
         className={s.galleryClose}
-        aria-label="Close gallery"
+        aria-label={t('gallery.close')}
         onClick={onClose}
       >
         <CloseIcon />
@@ -688,7 +708,9 @@ function FullscreenGallery({
                 <button
                   type="button"
                   className={s.videoControlButton}
-                  aria-label={videoPaused ? 'Play video' : 'Pause video'}
+                  aria-label={
+                    videoPaused ? t('gallery.playVideo') : t('gallery.pauseVideo')
+                  }
                   onClick={handleVideoToggle}
                 >
                   {videoPaused ? <PlayIcon /> : <PauseIcon />}
@@ -701,7 +723,7 @@ function FullscreenGallery({
                   step="0.01"
                   defaultValue={0}
                   className={s.videoProgress}
-                  aria-label="Video progress"
+                  aria-label={t('gallery.progress')}
                   onChange={(event) => {
                     const video = videoRef.current;
                     if (!video) return;
@@ -721,7 +743,7 @@ function FullscreenGallery({
       </main>
 
       {items.length > 1 ? (
-        <aside className={s.thumbnails} aria-label="Gallery thumbnails">
+        <aside className={s.thumbnails} aria-label={t('gallery.thumbnails')}>
           {items.map((item, index) => (
             <button
               key={item.id}
@@ -729,7 +751,7 @@ function FullscreenGallery({
               className={cn(s.thumbnail, [], {
                 [s.thumbnailActive]: item.id === activeItem.id,
               })}
-              aria-label={`Open media ${index + 1}`}
+              aria-label={t('gallery.openMedia', { index: index + 1 })}
               aria-current={item.id === activeItem.id ? 'true' : undefined}
               onClick={() => onActiveChange(item.id)}
             >
@@ -749,6 +771,7 @@ function FullscreenGallery({
 }
 
 export function ScenarioDetailsPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -964,7 +987,7 @@ export function ScenarioDetailsPage() {
   };
 
   if (scenarioQuery.isLoading) {
-    return <div className={s.empty}>Loading scenario...</div>;
+    return <div className={s.empty}>{t('scenarioDetails.loading')}</div>;
   }
 
   if (scenarioQuery.isError || !scenario) {
@@ -972,12 +995,12 @@ export function ScenarioDetailsPage() {
       <div className={s.empty}>
         {scenarioQuery.error instanceof Error
           ? scenarioQuery.error.message
-          : 'Failed to load scenario'}
+          : t('scenarioDetails.failed')}
       </div>
     );
   }
 
-  const personality = formatPersonality(scenario.character.personality);
+  const personality = formatPersonality(scenario.character.personality, t);
   const canLoadMore =
     scenario.isUnlocked &&
     Boolean(mediaQuery.hasNextPage) &&
@@ -1002,7 +1025,9 @@ export function ScenarioDetailsPage() {
             <span className={s.characterName}>{scenario.character.name}</span>
             <span className={s.characterDetails}>
               {scenario.character.age ? (
-                <span>Age: {scenario.character.age}</span>
+                <span>
+                  {t('scenarioDetails.age', { age: scenario.character.age })}
+                </span>
               ) : null}
               {personality ? <span>{personality}</span> : null}
             </span>
@@ -1012,7 +1037,7 @@ export function ScenarioDetailsPage() {
           <div className={s.actions}>
             <button type="button" className={s.chatButton} onClick={handleStartChat}>
               <ScenarioMessageIcon aria-hidden="true" />
-              <span>Text her</span>
+              <span>{t('scenarioDetails.textHer')}</span>
             </button>
             {isLocked ? (
               <button
@@ -1022,14 +1047,17 @@ export function ScenarioDetailsPage() {
                 onClick={() => setFullUnlockOpen(true)}
               >
                 <LockIcon aria-hidden="true" />
-                <span>Unlock explicit content</span>
+                <span>{t('scenarioDetails.unlockExplicit')}</span>
               </button>
             ) : null}
           </div>
         </div>
 
         {scenario.isUnlocked ? (
-          <div className={s.filters} aria-label="Scenario explicitness filters">
+          <div
+            className={s.filters}
+            aria-label={t('scenarioDetails.explicitFilters')}
+          >
             {EXPLICITNESS_FILTERS.map((filter) => {
               const active = explicitness === filter.value;
               return (
@@ -1044,7 +1072,7 @@ export function ScenarioDetailsPage() {
                     setExplicitness(active ? null : filter.value)
                   }
                 >
-                  {filter.label}
+                  {t(filter.labelKey)}
                 </button>
               );
             })}
@@ -1053,7 +1081,11 @@ export function ScenarioDetailsPage() {
       </section>
 
       <section className={s.mediaSection} ref={mediaSwitchRef}>
-        <div className={s.tabs} role="tablist" aria-label="Scenario media">
+        <div
+          className={s.tabs}
+          role="tablist"
+          aria-label={t('scenarioDetails.mediaTabs')}
+        >
           {MEDIA_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -1065,7 +1097,7 @@ export function ScenarioDetailsPage() {
               })}
               onClick={() => updateActiveTab(tab.value)}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </div>
@@ -1082,14 +1114,18 @@ export function ScenarioDetailsPage() {
           <div className={s.empty}>
             {mediaQuery.error instanceof Error
               ? mediaQuery.error.message
-              : 'Failed to load media'}
+              : t('scenarioDetails.failedMedia')}
           </div>
         ) : null}
 
         {!mediaQuery.isLoading && !mediaQuery.isError && !mediaItems.length ? (
           <div className={s.empty}>
-            This scenario has no{' '}
-            {activeTab === ContentItemType.Image ? 'photos' : 'videos'} yet.
+            {t('scenarioDetails.noMedia', {
+              type:
+                activeTab === ContentItemType.Image
+                  ? t('scenarioDetails.photosLower')
+                  : t('scenarioDetails.videosLower'),
+            })}
           </div>
         ) : null}
 
@@ -1125,7 +1161,7 @@ export function ScenarioDetailsPage() {
               void mediaQuery.fetchNextPage();
             }}
           >
-            Load more
+            {t('common.loadMore')}
           </button>
         ) : null}
       </section>
@@ -1167,7 +1203,7 @@ export function ScenarioDetailsPage() {
           aria-hidden={!dockVisible}
           data-visible={dockVisible ? 'true' : 'false'}
         >
-          <span className={s.fullAccessLabel}>Full Access</span>
+          <span className={s.fullAccessLabel}>{t('scenarioDetails.fullAccess')}</span>
           <button
             type="button"
             className={s.fullAccessButton}
@@ -1175,7 +1211,7 @@ export function ScenarioDetailsPage() {
             onClick={() => setFullUnlockOpen(true)}
           >
             <LockIcon aria-hidden="true" />
-            <span>Unlock explicit content</span>
+            <span>{t('scenarioDetails.unlockExplicit')}</span>
           </button>
         </aside>
       ) : null}

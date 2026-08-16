@@ -1,5 +1,6 @@
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import logo from '@/assets/logo.jpg';
@@ -12,18 +13,23 @@ import { useUser } from '@/context/UserContext';
 
 import s from './MiniAppLayout.module.scss';
 
-const dockItems: NoirDockItem[] = [
-  { label: 'Explore', path: '/explore', icon: 'explore' },
-  { label: 'Collection', path: '/collection', icon: 'image' },
-  { label: 'Create', path: '/my-girls', icon: 'add_box', create: true },
-  { label: 'Shop', path: '/shop', icon: 'redeem' },
-  { label: 'Profile', path: '/profile', icon: 'person' },
-];
-
 export function MiniAppLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useUser();
+  const dockItems: NoirDockItem[] = [
+    { label: t('layout.dock.explore'), path: '/explore', icon: 'explore' },
+    { label: t('layout.dock.collection'), path: '/collection', icon: 'image' },
+    {
+      label: t('layout.dock.create'),
+      path: '/my-girls',
+      icon: 'add_box',
+      create: true,
+    },
+    { label: t('layout.dock.shop'), path: '/shop', icon: 'redeem' },
+    { label: t('layout.dock.profile'), path: '/profile', icon: 'person' },
+  ];
 
   useEffect(() => {
     const setVh = () => {
@@ -75,9 +81,9 @@ export function MiniAppLayout() {
       <div className={s.shell}>
         <div className={s.ambient} />
         {isSubscriptions ? (
-          <NoirTopBar mode="back" title="Upgrade Premium" />
+          <NoirTopBar mode="back" title={t('layout.upgradePremium')} />
         ) : isCatalogCompanion ? (
-          <NoirTopBar mode="back" title="Scenarios" />
+          <NoirTopBar mode="back" title={t('layout.scenarios')} />
         ) : (
           <NoirTopBar
             avatarSrc={logo}

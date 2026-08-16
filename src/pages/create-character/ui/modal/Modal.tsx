@@ -1,6 +1,7 @@
+import type { ReactNode } from 'react';
 import { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
-import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { CloseIcon } from '../CloseIcon';
 import { Typography } from '../typography/Typography';
@@ -29,6 +30,7 @@ export function Modal({
   headerClassName,
   contentClassName,
 }: ModalProps) {
+  const { t } = useTranslation();
   const titleId = useId();
 
   useEffect(() => {
@@ -77,7 +79,12 @@ export function Modal({
               {title}
             </Typography>
           ) : null}
-          <button className={s.close} type="button" onClick={onClose} aria-label="Close">
+          <button
+            className={s.close}
+            type="button"
+            onClick={onClose}
+            aria-label={t('common.closeModal')}
+          >
             <CloseIcon />
           </button>
         </div>
@@ -85,6 +92,6 @@ export function Modal({
         {actions ? <div className={s.actions}>{actions}</div> : null}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

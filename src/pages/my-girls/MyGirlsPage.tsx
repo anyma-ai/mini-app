@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { getCustomCharacters } from '@/api/custom-character';
@@ -13,6 +14,7 @@ function getCardImage(girl: ICharacter) {
 }
 
 export function MyGirlsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     data: girls = [],
@@ -32,19 +34,19 @@ export function MyGirlsPage() {
   }, [girls.length, isError, isFetched, isLoading, navigate]);
 
   if (isLoading) {
-    return <div className={s.empty}>Loading your girls...</div>;
+    return <div className={s.empty}>{t('myGirls.loading')}</div>;
   }
 
   if (isError) {
     return (
       <div className={s.empty}>
-        {error instanceof Error ? error.message : 'Failed to load characters'}
+        {error instanceof Error ? error.message : t('myGirls.failed')}
       </div>
     );
   }
 
   if (girls.length === 0) {
-    return <div className={s.empty}>Opening create flow...</div>;
+    return <div className={s.empty}>{t('myGirls.openingCreate')}</div>;
   }
 
   return (
@@ -69,7 +71,7 @@ export function MyGirlsPage() {
                   <h3 className={s.cardTitle}>{girl.name}</h3>
                   <div className={s.mood}>{girl.description}</div>
                 </div>
-                <span className={s.secondaryAction}>Chat Now</span>
+                <span className={s.secondaryAction}>{t('myGirls.chatNow')}</span>
               </div>
             </div>
           </button>
@@ -86,11 +88,11 @@ export function MyGirlsPage() {
                 auto_awesome
               </span>
             </span>
-            <h3 className={s.createGirlTitle}>New Girl</h3>
+            <h3 className={s.createGirlTitle}>{t('myGirls.newGirl')}</h3>
             <p className={s.createGirlDescription}>
-              Your sweet fantasy awaits you
+              {t('myGirls.fantasy')}
             </p>
-            <span className={s.createGirlButton}>Create New</span>
+            <span className={s.createGirlButton}>{t('myGirls.createNew')}</span>
             <span className={s.createGirlPrice}>
               <SparklesIcon aria-hidden="true" />
               <span>{CUSTOM_CHARACTER_PRICE}</span>

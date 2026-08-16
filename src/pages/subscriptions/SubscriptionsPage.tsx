@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { createPlanInvoice } from '@/api/payments';
@@ -44,49 +45,61 @@ function getPricePerDay(plan: IPlan) {
   return Math.round(plan.price / days);
 }
 
-function formatTitle(plan: IPlan) {
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+function formatTitle(plan: IPlan, t: Translate) {
   const count = plan.periodCount ?? 1;
-  return `${count} ${plan.period === PlanPeriod.Day ? 'Day' : plan.period === PlanPeriod.Month ? 'Month' : 'Year'}${count === 1 ? '' : 's'}`;
+  const periodKey =
+    plan.period === PlanPeriod.Day
+      ? 'subscriptions.period.day'
+      : plan.period === PlanPeriod.Month
+        ? 'subscriptions.period.month'
+        : 'subscriptions.period.year';
+
+  return t(periodKey, { count });
 }
 
-function getSubtitle(plan: IPlan, index: number) {
-  if (plan.isRecommended) return 'Premium';
-  if (index === 0) return 'Trial';
-  if (plan.period === PlanPeriod.Year) return 'Elite';
-  return 'Standard';
+function getSubtitle(plan: IPlan, index: number, t: Translate) {
+  if (plan.isRecommended) return t('subscriptions.premium');
+  if (index === 0) return t('subscriptions.trial');
+  if (plan.period === PlanPeriod.Year) return t('subscriptions.elite');
+  return t('subscriptions.standard');
 }
 
-function getFeatureList(plan: IPlan) {
+function getFeatureList(plan: IPlan, t: Translate) {
   if (plan.period === PlanPeriod.Day) {
-    return ['Unlimited Chats', 'Explicit Content Access'];
+    return [
+      t('subscriptions.features.unlimitedChats'),
+      t('subscriptions.features.explicit'),
+    ];
   }
 
   if (plan.period === PlanPeriod.Month && plan.periodCount === 1) {
     return [
-      'Unlimited Chats',
-      'Explicit Content Access',
-      'Hotter Videos',
+      t('subscriptions.features.unlimitedChats'),
+      t('subscriptions.features.explicit'),
+      t('subscriptions.features.hotterVideos'),
     ];
   }
 
   if (plan.period === PlanPeriod.Month && plan.periodCount === 3) {
     return [
-      'Unlimited Chats',
-      'Explicit Content Access',
-      'Hotter Videos',
-      'Priority Response Speed',
+      t('subscriptions.features.unlimitedChats'),
+      t('subscriptions.features.explicit'),
+      t('subscriptions.features.hotterVideos'),
+      t('subscriptions.features.priority'),
     ];
   }
 
   return [
-    'Unlimited Chats',
-    'Explicit Content Access',
-    'Hotter Videos',
-    'Premium Scenarios',
+    t('subscriptions.features.unlimitedChats'),
+    t('subscriptions.features.explicit'),
+    t('subscriptions.features.hotterVideos'),
+    t('subscriptions.features.premiumScenarios'),
   ];
 }
 
-function getRemainingLabel(subscribedUntil?: string | null) {
+function getRemainingLabel(subscribedUntil: string | null | undefined, t: Translate) {
   if (!subscribedUntil) return null;
 
   const end = Date.parse(subscribedUntil);
@@ -96,10 +109,13 @@ function getRemainingLabel(subscribedUntil?: string | null) {
   if (remainingMs <= 0) return null;
 
   const remainingDays = Math.ceil(remainingMs / 86_400_000);
-  return `${remainingDays} day${remainingDays === 1 ? '' : 's'} remaining`;
+  return remainingDays === 1
+    ? t('subscriptions.daysRemainingOne', { count: remainingDays })
+    : t('subscriptions.daysRemainingMany', { count: remainingDays });
 }
 
 export function SubscriptionsPage() {
+  const { t } = useTranslation();
   const launchParams = useLaunchParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -168,7 +184,7 @@ export function SubscriptionsPage() {
     [plans, selectedId],
   );
 
-  const remainingLabel = getRemainingLabel(user?.subscribedUntil);
+  const remainingLabel = getRemainingLabel(user?.subscribedUntil, t);
 
   const handleCheckout = () => {
     if (!selectedPlan) return;
@@ -194,7 +210,7 @@ export function SubscriptionsPage() {
   };
 
   if (isLoading) {
-    return <div className={s.empty}>Assembling premium access...</div>;
+    return <div className={s.empty}>{t('subscriptions.loading')}</div>;
   }
 
   if (isError) {
@@ -202,7 +218,7 @@ export function SubscriptionsPage() {
       <div className={s.empty}>
         {error instanceof Error
           ? error.message
-          : 'Failed to load subscriptions'}
+          : t('subscriptions.failed')}
       </div>
     );
   }
@@ -215,13 +231,14 @@ export function SubscriptionsPage() {
             <div className={s.status}>{remainingLabel}</div>
           ) : null}
           <h1 className={s.title}>
-            Elevate Your
+            {t('subscriptions.titleMain')}
             <br />
-            <span className={s.titleAccent}>Digital Aura</span>
+            <span className={s.titleAccent}>
+              {t('subscriptions.titleAccent')}
+            </span>
           </h1>
           <p className={s.description}>
-            Unlock exclusive content, faster responses, and intimate
-            high-fidelity moments.
+            {t('subscriptions.description')}
           </p>
         </section>
 
@@ -242,7 +259,9 @@ export function SubscriptionsPage() {
                 })}
               >
                 {isRecommended ? (
-                  <span className={s.featuredBadge}>Most Popular</span>
+                  <span className={s.featuredBadge}>
+                    {t('shop.mostPopular')}
+                  </span>
                 ) : null}
                 <button
                   type="button"
@@ -255,9 +274,9 @@ export function SubscriptionsPage() {
                 >
                   <div className={s.planHead}>
                     <div>
-                      <h2 className={s.planTitle}>{formatTitle(plan)}</h2>
+                      <h2 className={s.planTitle}>{formatTitle(plan, t)}</h2>
                       <div className={s.planSubtitle}>
-                        {getSubtitle(plan, index)}
+                        {getSubtitle(plan, index, t)}
                       </div>
                     </div>
                     <div className={s.planPriceBlock}>
@@ -272,7 +291,9 @@ export function SubscriptionsPage() {
                         <div className={s.planPrice}>{plan.price}</div>
                       </div>
                       {savePercent > 0 ? (
-                        <span className={s.planSave}>SAVE {savePercent}%</span>
+                        <span className={s.planSave}>
+                          {t('subscriptions.save', { percent: savePercent })}
+                        </span>
                       ) : null}
                     </div>
                   </div>
@@ -280,16 +301,18 @@ export function SubscriptionsPage() {
                   <div className={s.planMeta}>
                     <span className={s.planAir}>
                       <SparklesIcon className={s.planAirIcon} aria-hidden />
-                      <span>+{plan.air} Credits</span>
+                      <span>+{plan.air} {t('common.credits')}</span>
                     </span>
                     <span className={s.planPerDay}>
                       <TgStarWhiteIcon className={s.planPerDayIcon} />
-                      <span>{pricePerDay} / day</span>
+                      <span>
+                        {t('subscriptions.perDay', { price: pricePerDay })}
+                      </span>
                     </span>
                   </div>
 
                   <div className={s.featureList}>
-                    {getFeatureList(plan).map((feature) => (
+                    {getFeatureList(plan, t).map((feature) => (
                       <div key={feature} className={s.feature}>
                         <span
                           className={`material-symbols-outlined filled ${s.featureIcon}`}
@@ -311,7 +334,7 @@ export function SubscriptionsPage() {
                           lock
                         </span>
 
-                        <span>Unlock Full Intimacy</span>
+                        <span>{t('subscriptions.unlockFull')}</span>
                       </div>
                     </div>
                   ) : null}
@@ -346,7 +369,7 @@ export function SubscriptionsPage() {
       <footer className={s.footer}>
         <div className={s.footerInner}>
           <button type="button" className={s.cta} onClick={handleCheckout}>
-            Claim Access
+            {t('subscriptions.claimAccess')}
             <SparklesIcon className={s.ctaIcon} aria-hidden />
           </button>
         </div>

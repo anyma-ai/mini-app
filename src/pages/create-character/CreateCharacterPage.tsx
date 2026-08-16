@@ -1,19 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { createCustomCharacter } from '@/api/custom-character';
 import {
   CHARACTER_FETISH_EMOJI,
-  CHARACTER_FETISH_LABEL,
   CHARACTER_HOBBY_EMOJI,
-  CHARACTER_HOBBY_LABEL,
   CHARACTER_PERSONALITY_EMOJI,
-  CHARACTER_PERSONALITY_LABEL,
-  CUSTOM_SCENARIO_EMOJI,
-  CUSTOM_SCENARIO_LABEL,
   CharacterFetish,
   CharacterHobby,
+  CUSTOM_SCENARIO_EMOJI,
 } from '@/common/consts/character';
 import { CUSTOM_CHARACTER_PRICE } from '@/common/types';
 import { cn } from '@/common/utils';
@@ -26,23 +23,16 @@ import { MultiSelectModal } from './components/multi-select-modal';
 import { SelectionField } from './components/selection-field';
 import { WizardProgress } from './components/wizard-progress';
 import {
+  getLocalizedCreateCharacterOptions,
+  getWizardSteps,
   MAX_AGE,
   MIN_AGE,
-  WIZARD_STEPS,
-  bodyTypeOptions,
-  breastSizeOptions,
-  buttSizeOptions,
-  ethnicityOptions,
-  eyeColorOptions,
-  fetishOptions,
-  hairColorOptions,
-  hairStyleOptions,
-  hobbyOptions,
-  personalityOptions,
-  scenarioOptions,
-  typeOptions,
 } from './create-character.data';
-import { buildPayload, titleize } from './create-character.helpers';
+import {
+  buildPayload,
+  titleize,
+  toTranslationKey,
+} from './create-character.helpers';
 import styles from './create-character.module.scss';
 import type { Draft, ModalKind } from './create-character.types';
 import { ChevronRightIcon, SparklesIcon } from './icons';
@@ -61,6 +51,7 @@ function buildCreateCharacterShopUrl() {
 }
 
 export function CreateCharacterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -75,9 +66,14 @@ export function CreateCharacterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const resumeCreateHandledRef = useRef(false);
 
-  const activeStep = WIZARD_STEPS[activeStepIndex];
+  const wizardSteps = useMemo(() => getWizardSteps(t), [t]);
+  const localizedOptions = useMemo(
+    () => getLocalizedCreateCharacterOptions(t),
+    [t],
+  );
+  const activeStep = wizardSteps[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
-  const isLastStep = activeStepIndex === WIZARD_STEPS.length - 1;
+  const isLastStep = activeStepIndex === wizardSteps.length - 1;
   const nameIsValid = draft.name.trim().length > 0;
   const ageIsValid = draft.age >= MIN_AGE && draft.age <= MAX_AGE;
   const personalityIsValid = draft.personality.length >= 1;
@@ -108,10 +104,20 @@ export function CreateCharacterPage() {
       navigate('/my-girls', { replace: true });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to create character.';
+        error instanceof Error
+          ? error.message
+          : t('createCharacter.errors.failedCreate');
       setSubmitError(message);
     }
-  }, [clearPersistedDraft, createCharacter, draft, navigate, queryClient, refresh]);
+  }, [
+    clearPersistedDraft,
+    createCharacter,
+    draft,
+    navigate,
+    queryClient,
+    refresh,
+    t,
+  ]);
 
   const handleCreateDecision = useCallback(async () => {
     setSubmitError(null);
@@ -147,7 +153,7 @@ export function CreateCharacterPage() {
 
     resumeCreateHandledRef.current = true;
     const timeoutId = window.setTimeout(() => {
-      setActiveStepIndex(WIZARD_STEPS.length - 1);
+      setActiveStepIndex(wizardSteps.length - 1);
       void handleCreateDecision();
     }, 0);
 
@@ -158,12 +164,13 @@ export function CreateCharacterPage() {
     resumeCreate,
     setActiveStepIndex,
     user,
+    wizardSteps.length,
   ]);
 
   const goNext = async () => {
     setSubmitError(null);
 
-    if (activeStepIndex < WIZARD_STEPS.length - 1) {
+    if (activeStepIndex < wizardSteps.length - 1) {
       setActiveStepIndex((index) => index + 1);
       return;
     }
@@ -190,16 +197,18 @@ export function CreateCharacterPage() {
                 [styles.heroTitleMobileHidden]: !isFirstStep,
               })}
             >
-              Create Your{' '}
+              {t('createCharacter.title.main')}{' '}
               <span
                 className={isFirstStep ? styles.heroTitleAccent : undefined}
               >
-                Perfect Girl
+                {t('createCharacter.title.accent')}
               </span>
             </Typography>
             {!isFirstStep ? (
               <WizardProgress
                 activeIndex={activeStepIndex}
+                ariaLabel={t('createCharacter.aria.progress')}
+                steps={wizardSteps}
                 onStepClick={(index) => setActiveStepIndex(index)}
               />
             ) : null}
@@ -210,9 +219,9 @@ export function CreateCharacterPage() {
               <main className={styles.panel}>
                 {activeStep.id === 'type' ? (
                   <MediaChoiceGroup
-                    ariaLabel="Character type"
+                    ariaLabel={t('createCharacter.aria.characterType')}
                     columns="two"
-                    options={typeOptions}
+                    options={localizedOptions.typeOptions}
                     value={draft.type}
                     onChange={(type) => patchDraft({ type })}
                   />
@@ -220,9 +229,9 @@ export function CreateCharacterPage() {
 
                 {activeStep.id === 'ethnicity' ? (
                   <MediaChoiceGroup
-                    ariaLabel="Character ethnicity"
+                    ariaLabel={t('createCharacter.aria.characterEthnicity')}
                     columns="ethnicity"
-                    options={ethnicityOptions}
+                    options={localizedOptions.ethnicityOptions}
                     value={draft.ethnicity}
                     onChange={(ethnicity) => patchDraft({ ethnicity })}
                   />
@@ -236,12 +245,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Hair Style
+                        {t('createCharacter.fields.hairStyle')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Hair style"
+                        ariaLabel={t('createCharacter.fields.hairStyle')}
                         columns="face"
-                        options={hairStyleOptions}
+                        options={localizedOptions.hairStyleOptions}
                         value={draft.hairStyle}
                         onChange={(hairStyle) => patchDraft({ hairStyle })}
                       />
@@ -252,12 +261,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Hair Color
+                        {t('createCharacter.fields.hairColor')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Hair color"
+                        ariaLabel={t('createCharacter.fields.hairColor')}
                         columns="face"
-                        options={hairColorOptions}
+                        options={localizedOptions.hairColorOptions}
                         value={draft.hairColor}
                         onChange={(hairColor) => patchDraft({ hairColor })}
                       />
@@ -268,12 +277,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Eye Color
+                        {t('createCharacter.fields.eyeColor')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Eye color"
+                        ariaLabel={t('createCharacter.fields.eyeColor')}
                         columns="face"
-                        options={eyeColorOptions}
+                        options={localizedOptions.eyeColorOptions}
                         value={draft.eyeColor}
                         onChange={(eyeColor) => patchDraft({ eyeColor })}
                       />
@@ -289,12 +298,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Body Type
+                        {t('createCharacter.fields.bodyType')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Body type"
+                        ariaLabel={t('createCharacter.fields.bodyType')}
                         columns="body"
-                        options={bodyTypeOptions}
+                        options={localizedOptions.bodyTypeOptions}
                         value={draft.bodyType}
                         onChange={(bodyType) => patchDraft({ bodyType })}
                       />
@@ -305,12 +314,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Breast Size
+                        {t('createCharacter.fields.breastSize')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Breast size"
+                        ariaLabel={t('createCharacter.fields.breastSize')}
                         columns="breast"
-                        options={breastSizeOptions}
+                        options={localizedOptions.breastSizeOptions}
                         value={draft.breastSize}
                         onChange={(breastSize) => patchDraft({ breastSize })}
                       />
@@ -321,12 +330,12 @@ export function CreateCharacterPage() {
                         variant="headline-md"
                         className={styles.choiceSectionTitle}
                       >
-                        Butt Size
+                        {t('createCharacter.fields.buttSize')}
                       </Typography>
                       <MediaChoiceGroup
-                        ariaLabel="Butt size"
+                        ariaLabel={t('createCharacter.fields.buttSize')}
                         columns="butt"
-                        options={buttSizeOptions}
+                        options={localizedOptions.buttSizeOptions}
                         value={draft.buttSize}
                         onChange={(buttSize) => patchDraft({ buttSize })}
                       />
@@ -344,16 +353,16 @@ export function CreateCharacterPage() {
                           variant="meta"
                           className={styles.profileLabel}
                         >
-                          Name
+                          {t('createCharacter.fields.name')}
                         </Typography>
                       }
                     >
                       <Input
-                        aria-label="Character Name"
+                        aria-label={t('createCharacter.aria.characterName')}
                         fullWidth
                         wrapperClassName={styles.nameInputWrapper}
                         className={styles.nameInput}
-                        placeholder="Jessica"
+                        placeholder={t('createCharacter.placeholders.name')}
                         value={draft.name}
                         onChange={(event) =>
                           patchDraft({ name: event.target.value })
@@ -369,7 +378,7 @@ export function CreateCharacterPage() {
                           variant="meta"
                           className={styles.profileLabel}
                         >
-                          Age
+                          {t('createCharacter.fields.age')}
                         </Typography>
                       }
                     >
@@ -381,62 +390,78 @@ export function CreateCharacterPage() {
 
                     <div className={styles.selectionGrid}>
                       <SelectionField
-                        emptyText="Choose 1-2 traits"
+                        emptyText={t(
+                          'createCharacter.placeholders.choosePersonality',
+                        )}
                         emojis={draft.personality.map(
                           (item) => CHARACTER_PERSONALITY_EMOJI[item],
                         )}
-                        label="Personality"
+                        label={t('createCharacter.fields.personality')}
                         values={draft.personality.map(
-                          (item) => CHARACTER_PERSONALITY_LABEL[item],
+                          (item) => t(`character.personality.${item}`),
                         )}
                         onOpen={() => openModal('personality')}
                       />
                       <SelectionField
-                        emptyText="Choose Her hobbies"
+                        emptyText={t(
+                          'createCharacter.placeholders.chooseHobbies',
+                        )}
                         emojis={draft.hobbies
                           .filter(
                             (item): item is CharacterHobby =>
                               item !== CharacterHobby.None,
                           )
                           .map((item) => CHARACTER_HOBBY_EMOJI[item])}
-                        label="Hobbies"
+                        label={t('createCharacter.fields.hobbies')}
                         values={draft.hobbies.map(
                           (item) =>
-                            CHARACTER_HOBBY_LABEL[item as CharacterHobby] ??
-                            titleize(item),
+                            t(`character.hobby.${item}`, {
+                              defaultValue: titleize(item),
+                            }),
                         )}
                         onOpen={() => openModal('hobbies')}
                       />
 
                       <SelectionField
-                        emptyText="Choose first roleplay"
+                        emptyText={t(
+                          'createCharacter.placeholders.chooseRoleplay',
+                        )}
                         emojis={
                           draft.scenario
                             ? [CUSTOM_SCENARIO_EMOJI[draft.scenario]]
                             : []
                         }
-                        label="First Roleplay"
+                        label={t('createCharacter.fields.firstRoleplay')}
                         values={
                           draft.scenario
-                            ? [CUSTOM_SCENARIO_LABEL[draft.scenario]]
+                            ? [
+                                t(
+                                  `character.scenario.${toTranslationKey(
+                                    draft.scenario,
+                                  )}`,
+                                ),
+                              ]
                             : []
                         }
                         onOpen={() => openModal('scenario')}
                       />
 
                       <SelectionField
-                        emptyText="Choose fetishes"
+                        emptyText={t(
+                          'createCharacter.placeholders.chooseFetishes',
+                        )}
                         emojis={draft.fetishes
                           .filter(
                             (item): item is CharacterFetish =>
                               item !== CharacterFetish.None,
                           )
                           .map((item) => CHARACTER_FETISH_EMOJI[item])}
-                        label="Fetishes"
+                        label={t('createCharacter.fields.fetishes')}
                         values={draft.fetishes.map(
                           (item) =>
-                            CHARACTER_FETISH_LABEL[item as CharacterFetish] ??
-                            titleize(item),
+                            t(`character.fetish.${item}`, {
+                              defaultValue: titleize(item),
+                            }),
                         )}
                         onOpen={() => openModal('fetishes')}
                       />
@@ -447,7 +472,7 @@ export function CreateCharacterPage() {
                 {submitError ? (
                   <Alert
                     description={submitError}
-                    title="Unable to create character"
+                    title={t('createCharacter.errors.unableCreate')}
                     tone="danger"
                   />
                 ) : null}
@@ -480,17 +505,17 @@ export function CreateCharacterPage() {
                 }}
               >
                 {isFirstStep ? (
-                  'Begin'
+                  t('createCharacter.actions.begin')
                 ) : isLastStep ? (
                   <>
-                    Create Her{' '}
+                    {t('createCharacter.actions.createHer')}{' '}
                     <span className={styles.ctaPrice}>
                       <SparklesIcon aria-hidden="true" />
                       <span>{CUSTOM_CHARACTER_PRICE}</span>
                     </span>
                   </>
                 ) : (
-                  'Next'
+                  t('createCharacter.actions.next')
                 )}
               </Button>
             </div>
@@ -502,8 +527,8 @@ export function CreateCharacterPage() {
         limit={2}
         min={1}
         open={activeModal === 'personality'}
-        options={personalityOptions}
-        title="Select Personality"
+        options={localizedOptions.personalityOptions}
+        title={t('createCharacter.modals.selectPersonality')}
         value={draft.personality}
         onChange={(personality) => patchDraft({ personality })}
         onClose={() => setActiveModal(null)}
@@ -512,8 +537,8 @@ export function CreateCharacterPage() {
         clearValue={CharacterHobby.None}
         limit={3}
         open={activeModal === 'hobbies'}
-        options={hobbyOptions}
-        title="Select Hobbies"
+        options={localizedOptions.hobbyOptions}
+        title={t('createCharacter.modals.selectHobbies')}
         value={draft.hobbies as CharacterHobby[]}
         onChange={(hobbies) => patchDraft({ hobbies })}
         onClose={() => setActiveModal(null)}
@@ -522,8 +547,8 @@ export function CreateCharacterPage() {
         limit={1}
         min={1}
         open={activeModal === 'scenario'}
-        options={scenarioOptions}
-        title="First Roleplay"
+        options={localizedOptions.scenarioOptions}
+        title={t('createCharacter.modals.firstRoleplay')}
         value={draft.scenario ? [draft.scenario] : []}
         onChange={(scenario) => patchDraft({ scenario: scenario[0] ?? '' })}
         onClose={() => setActiveModal(null)}
@@ -532,8 +557,8 @@ export function CreateCharacterPage() {
         clearValue={CharacterFetish.None}
         limit={3}
         open={activeModal === 'fetishes'}
-        options={fetishOptions}
-        title="Fetishes"
+        options={localizedOptions.fetishOptions}
+        title={t('createCharacter.modals.fetishes')}
         value={draft.fetishes as CharacterFetish[]}
         onChange={(fetishes) => patchDraft({ fetishes })}
         onClose={() => setActiveModal(null)}

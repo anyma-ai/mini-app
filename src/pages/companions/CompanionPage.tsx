@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { createCharacterScenario, getCustomCharacters } from '@/api/custom-character';
@@ -15,7 +16,7 @@ import {
 } from '@/common/types';
 import { useUser } from '@/context/UserContext';
 import { MultiSelectModal } from '@/pages/create-character/components/multi-select-modal';
-import { scenarioOptions } from '@/pages/create-character/create-character.data';
+import { getLocalizedCreateCharacterOptions } from '@/pages/create-character/create-character.data';
 
 import s from './CompanionPage.module.scss';
 
@@ -35,6 +36,7 @@ function buildCreateScenarioUpgradeUrl(characterId: string) {
 }
 
 export function CompanionPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, refresh } = useUser();
@@ -48,6 +50,10 @@ export function CompanionPage() {
   const [selectedScenario, setSelectedScenario] = useState<
     CustomScenarioType | ''
   >('');
+  const localizedOptions = useMemo(
+    () => getLocalizedCreateCharacterOptions(t),
+    [t],
+  );
 
   const catalogQuery = useQuery({
     queryKey: ['girls', characterType],
@@ -150,19 +156,19 @@ export function CompanionPage() {
   };
 
   if (isLoading) {
-    return <div className={s.empty}>Inviting your companion into focus...</div>;
+    return <div className={s.empty}>{t('companion.inviting')}</div>;
   }
 
   if (isError) {
     return (
       <div className={s.empty}>
-        {error instanceof Error ? error.message : 'Failed to load companion'}
+        {error instanceof Error ? error.message : t('companion.failed')}
       </div>
     );
   }
 
   if (!companion) {
-    return <div className={s.empty}>This aura is no longer available.</div>;
+    return <div className={s.empty}>{t('companion.notAvailable')}</div>;
   }
 
   return (
@@ -175,7 +181,7 @@ export function CompanionPage() {
         />
         <div className={s.heroOverlay} />
         <div className={s.heroBody}>
-          <span className={s.badge}>Scenarios</span>
+          <span className={s.badge}>{t('companion.scenarios')}</span>
           <div>
             <h1 className={s.name}>{companion.name}</h1>
             <p className={s.description}>{companion.description}</p>
@@ -184,7 +190,7 @@ export function CompanionPage() {
       </section>
 
       <section className={s.stack}>
-        <h2 className={s.sectionTitle}>Choose Your Path</h2>
+        <h2 className={s.sectionTitle}>{t('companion.choosePath')}</h2>
         {scenarios.map((scenario) => (
           <article
             key={scenario.id}
@@ -223,7 +229,9 @@ export function CompanionPage() {
                       navigate(`/scenarios/${scenario.id}`);
                     }}
                   >
-                    {isCustom ? 'Start Scenario' : 'Open Scenario'}
+                    {isCustom
+                      ? t('companion.startScenario')
+                      : t('companion.openScenario')}
                   </button>
                 ) : (
                   <button
@@ -234,7 +242,7 @@ export function CompanionPage() {
                       navigate('/subscriptions');
                     }}
                   >
-                    Unlock Intimacy
+                    {t('companion.unlockIntimacy')}
                   </button>
                 )}
               </div>
@@ -250,9 +258,13 @@ export function CompanionPage() {
                   auto_awesome
                 </span>
               </span>
-              <h3 className={s.newRoleplayTitle}>New Roleplay</h3>
+              <h3 className={s.newRoleplayTitle}>
+                {t('companion.newRoleplay')}
+              </h3>
               <p className={s.newRoleplayDescription}>
-                Get even more emotions with {companion.name}
+                {t('companion.newRoleplayDescription', {
+                  name: companion.name,
+                })}
               </p>
               <button
                 type="button"
@@ -260,7 +272,9 @@ export function CompanionPage() {
                 disabled={createScenario.isPending}
                 onClick={() => setModalOpen(true)}
               >
-                {createScenario.isPending ? 'Creating...' : 'Create New'}
+                {createScenario.isPending
+                  ? t('companion.creating')
+                  : t('myGirls.createNew')}
               </button>
               <span className={s.newRoleplayPrice}>
                 <SparklesIcon aria-hidden="true" />
@@ -273,13 +287,13 @@ export function CompanionPage() {
 
       {isCustom ? (
         <MultiSelectModal<CustomScenarioType>
-          actionLabel="Create New"
+          actionLabel={t('myGirls.createNew')}
           actionLoading={createScenario.isPending}
           limit={1}
           min={1}
           open={modalOpen}
-          options={scenarioOptions}
-          title={`Create roleplay with ${companion.name}`}
+          options={localizedOptions.scenarioOptions}
+          title={t('companion.createRoleplayWith', { name: companion.name })}
           value={selectedScenario ? [selectedScenario] : []}
           onChange={(value) => setSelectedScenario(value[0] ?? '')}
           onClose={() => {

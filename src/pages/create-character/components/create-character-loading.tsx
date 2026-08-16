@@ -1,25 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import logo from '@/assets/logo.jpg';
 import {
-  CHARACTER_FETISH_LABEL,
-  CHARACTER_HOBBY_LABEL,
-  CHARACTER_PERSONALITY_LABEL,
   CharacterFetish,
   CharacterHobby,
-  CUSTOM_SCENARIO_LABEL,
 } from '@/common/consts/character';
 
-import { titleize } from '../create-character.helpers';
+import { titleize, toTranslationKey } from '../create-character.helpers';
 import styles from '../create-character.module.scss';
 import type { Draft } from '../create-character.types';
-
-const LOADING_MESSAGES = [
-  'Saving appearance...',
-  'Building personality...',
-  'Preparing first roleplay...',
-  'Almost ready...',
-];
 
 type OverviewItem = {
   label: string;
@@ -31,7 +21,10 @@ type OverviewSection = {
   items: OverviewItem[];
 };
 
-function formatList(values: string[], labels: Record<string, string>) {
+function formatList(
+  values: string[],
+  translateLabel: (value: string) => string,
+) {
   const filteredValues = values.filter(
     (value) => value !== CharacterHobby.None && value !== CharacterFetish.None,
   );
@@ -41,53 +34,89 @@ function formatList(values: string[], labels: Record<string, string>) {
   }
 
   return filteredValues
-    .map((value) => labels[value] ?? titleize(value))
+    .map((value) => translateLabel(value))
     .join(', ');
 }
 
 export function CreateCharacterLoading({ draft }: { draft: Draft }) {
+  const { t } = useTranslation();
   const [activeMessageIndex, setActiveMessageIndex] = useState(0);
-  const activeMessage = LOADING_MESSAGES[activeMessageIndex];
+  const loadingMessages = [
+    t('createCharacter.loading.savingAppearance'),
+    t('createCharacter.loading.buildingPersonality'),
+    t('createCharacter.loading.preparingRoleplay'),
+    t('createCharacter.loading.almostReady'),
+  ];
+  const activeMessage = loadingMessages[activeMessageIndex];
+  const label = (key: string, value: string) =>
+    t(`${key}.${toTranslationKey(value)}`, { defaultValue: titleize(value) });
   const overviewSections: OverviewSection[] = [
     {
-      title: 'Profile',
+      title: t('createCharacter.loading.profile'),
       items: [
-        { label: 'Age', value: String(draft.age) },
-        { label: 'Style', value: titleize(draft.type) },
-        { label: 'Origin', value: titleize(draft.ethnicity) },
+        { label: t('createCharacter.fields.age'), value: String(draft.age) },
+        {
+          label: t('createCharacter.steps.type'),
+          value: label('character.type', draft.type),
+        },
+        {
+          label: t('createCharacter.steps.ethnicity'),
+          value: label('character.ethnicity', draft.ethnicity),
+        },
       ],
     },
     {
-      title: 'Look',
+      title: t('createCharacter.loading.look'),
       items: [
         {
-          label: 'Hair',
-          value: `${titleize(draft.hairColor)} ${titleize(draft.hairStyle)}`,
+          label: t('createCharacter.fields.hairStyle'),
+          value: `${label('character.hairColor', draft.hairColor)} ${label(
+            'character.hairStyle',
+            draft.hairStyle,
+          )}`,
         },
-        { label: 'Eyes', value: titleize(draft.eyeColor) },
-        { label: 'Body', value: titleize(draft.bodyType) },
-        { label: 'Breast', value: titleize(draft.breastSize) },
-        { label: 'Butt', value: titleize(draft.buttSize) },
+        {
+          label: t('createCharacter.fields.eyeColor'),
+          value: label('character.eyeColor', draft.eyeColor),
+        },
+        {
+          label: t('createCharacter.fields.bodyType'),
+          value: label('character.bodyType', draft.bodyType),
+        },
+        {
+          label: t('createCharacter.fields.breastSize'),
+          value: label('character.breastSize', draft.breastSize),
+        },
+        {
+          label: t('createCharacter.fields.buttSize'),
+          value: label('character.buttSize', draft.buttSize),
+        },
       ],
     },
     {
-      title: 'Vibe',
+      title: t('createCharacter.loading.vibe'),
       items: [
         {
-          label: 'Personality',
-          value: formatList(draft.personality, CHARACTER_PERSONALITY_LABEL),
+          label: t('createCharacter.fields.personality'),
+          value: formatList(draft.personality, (value) =>
+            label('character.personality', value),
+          ),
         },
         {
-          label: 'Hobbies',
-          value: formatList(draft.hobbies, CHARACTER_HOBBY_LABEL),
+          label: t('createCharacter.fields.hobbies'),
+          value: formatList(draft.hobbies, (value) =>
+            label('character.hobby', value),
+          ),
         },
         {
-          label: 'First Roleplay',
-          value: draft.scenario ? CUSTOM_SCENARIO_LABEL[draft.scenario] : null,
+          label: t('createCharacter.fields.firstRoleplay'),
+          value: draft.scenario ? label('character.scenario', draft.scenario) : null,
         },
         {
-          label: 'Fetishes',
-          value: formatList(draft.fetishes, CHARACTER_FETISH_LABEL),
+          label: t('createCharacter.fields.fetishes'),
+          value: formatList(draft.fetishes, (value) =>
+            label('character.fetish', value),
+          ),
         },
       ],
     },
@@ -102,11 +131,11 @@ export function CreateCharacterLoading({ draft }: { draft: Draft }) {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setActiveMessageIndex((index) => (index + 1) % LOADING_MESSAGES.length);
+      setActiveMessageIndex((index) => (index + 1) % loadingMessages.length);
     }, 4000);
 
     return () => window.clearInterval(intervalId);
-  }, []);
+  }, [loadingMessages.length]);
 
   return (
     <div className={styles.loadingScreen} role="status" aria-live="polite">
@@ -118,10 +147,15 @@ export function CreateCharacterLoading({ draft }: { draft: Draft }) {
           {activeMessage}
         </span>
       </div>
-      <aside className={styles.loadingOverview} aria-label="Character overview">
+      <aside
+        className={styles.loadingOverview}
+        aria-label={t('createCharacter.aria.overview')}
+      >
         <div className={styles.loadingOverviewHeader}>
-          <span>Overview</span>
-          <strong>{draft.name.trim() || 'Her'}</strong>
+          <span>{t('createCharacter.loading.overview')}</span>
+          <strong>
+            {draft.name.trim() || t('createCharacter.loading.fallbackName')}
+          </strong>
         </div>
         <div className={styles.loadingOverviewSections}>
           {overviewSections.map((section) => (

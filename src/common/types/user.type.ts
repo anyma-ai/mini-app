@@ -1,3 +1,5 @@
+import { Language } from "./language.type";
+
 export interface IUser {
   id: string;
   firstName: string;
@@ -8,5 +10,6 @@ export interface IUser {
   languageCode: string;
   subscribedUntil?: string | null;
   createdAt: string;
+  languageUI: Language;
   hasActiveChat: boolean;
 }

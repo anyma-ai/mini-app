@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/common/utils';
 
-import { CheckIcon } from '../icons';
 import styles from '../create-character.module.scss';
 import type { MediaGridColumns, MediaOption } from '../create-character.types';
+import { CheckIcon } from '../icons';
 
 function isVideo(url: string) {
   return /\.mp4($|\?)/i.test(url);

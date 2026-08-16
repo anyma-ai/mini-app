@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { SparklesIcon } from '@/assets/icons';
@@ -26,6 +27,7 @@ export function NoirTopBar({
   onBack,
   showUpgrade = false,
 }: NoirTopBarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const showCredits = credits > 0 || !showUpgrade;
 
@@ -77,7 +79,7 @@ export function NoirTopBar({
           <button type="button" className={s.pill} onClick={onCreditsClick}>
             <SparklesIcon aria-hidden="true" className={s.pillIcon} />
             <span className={s.pillLabel}>
-              {credits > 0 ? credits : 'Get Credits'}
+              {credits > 0 ? credits : t('common.getCredits')}
             </span>
           </button>
         ) : null}
@@ -88,7 +90,7 @@ export function NoirTopBar({
             onClick={onUpgradeClick}
           >
             <SparklesIcon aria-hidden="true" />
-            <span>Upgrade</span>
+            <span>{t('common.upgrade')}</span>
           </button>
         ) : null}
       </div>

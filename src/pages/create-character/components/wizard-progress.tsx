@@ -5,18 +5,22 @@ import styles from '../create-character.module.scss';
 
 export function WizardProgress({
   activeIndex,
+  ariaLabel = 'Create character progress',
   onStepClick,
+  steps = WIZARD_STEPS,
 }: {
   activeIndex: number;
+  ariaLabel?: string;
   onStepClick: (index: number) => void;
+  steps?: typeof WIZARD_STEPS;
 }) {
   return (
     <div
-      aria-label="Create character progress"
+      aria-label={ariaLabel}
       className={styles.stepProgress}
       role="group"
     >
-      {WIZARD_STEPS.map((step, index) => {
+      {steps.map((step, index) => {
         const Icon = step.icon;
         const active = index === activeIndex;
         const complete = index < activeIndex;
@@ -33,7 +37,7 @@ export function WizardProgress({
             ) : null}
             <button
               aria-current={active ? 'step' : undefined}
-              aria-label={`Go to ${step.title}`}
+              aria-label={step.title}
               className={cn(styles.stepIcon, undefined, {
                 [styles.stepIconActive]: active,
                 [styles.stepIconComplete]: complete,

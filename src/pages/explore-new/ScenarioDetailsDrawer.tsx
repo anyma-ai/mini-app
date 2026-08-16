@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { getScenarioPromo, scenarioKeys } from '@/api/scenarios';
 import {
@@ -43,13 +44,18 @@ function CloseIcon() {
 
 function formatPersonality(
   personality: ScenarioListItem['character']['personality'],
+  t: (key: string, options?: Record<string, unknown>) => string,
 ) {
   if (!Array.isArray(personality) || personality.length === 0) {
     return '';
   }
 
   return personality
-    .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
+    .map((item) =>
+      t(`character.personality.${item}`, {
+        defaultValue: item.charAt(0).toUpperCase() + item.slice(1),
+      }),
+    )
     .join(', ');
 }
 
@@ -90,10 +96,14 @@ function getSlidePlacement(
   return 'hidden';
 }
 
-function getMediaAlt(item: ScenarioMedia, index: number) {
+function getMediaAlt(
+  item: ScenarioMedia,
+  index: number,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
   return item.isBlurred
-    ? `Locked scenario preview ${index + 1}`
-    : `Scenario preview ${index + 1}`;
+    ? t('explore.aria.lockedPreview', { index: index + 1 })
+    : t('explore.aria.scenarioPreview', { index: index + 1 });
 }
 
 function getScenarioCardImageUrl(scenario: ScenarioListItem) {
@@ -104,11 +114,15 @@ function getScenarioCardImageUrl(scenario: ScenarioListItem) {
   );
 }
 
-function renderMediaItem(item: ScenarioMedia, index: number) {
+function renderMediaItem(
+  item: ScenarioMedia,
+  index: number,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
   if (item.type === ContentItemType.Video) {
     return (
       <video
-        aria-label={getMediaAlt(item, index)}
+        aria-label={getMediaAlt(item, index, t)}
         autoPlay
         className={styles.slideMedia}
         loop
@@ -123,7 +137,7 @@ function renderMediaItem(item: ScenarioMedia, index: number) {
 
   return (
     <img
-      alt={getMediaAlt(item, index)}
+      alt={getMediaAlt(item, index, t)}
       className={styles.slideMedia}
       src={item.url}
     />
@@ -137,9 +151,11 @@ function OtherScenarioCard({
   onOpen?: (scenario: ScenarioListItem) => void;
   scenario: ScenarioListItem;
 }) {
+  const { t } = useTranslation();
+
   return (
     <button
-      aria-label={`Open ${scenario.name} scenario details`}
+      aria-label={t('explore.aria.openScenario', { name: scenario.name })}
       className={styles.otherCard}
       type="button"
       onClick={() => onOpen?.(scenario)}
@@ -167,9 +183,11 @@ function CreateRoleplayCard({
   characterName: string;
   imageUrl: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <button
-      aria-label={`Your roleplay with ${characterName} coming soon`}
+      aria-label={t('explore.roleplayComingSoon', { name: characterName })}
       className={styles.createRoleplayCard}
       disabled
       type="button"
@@ -177,12 +195,14 @@ function CreateRoleplayCard({
       <img alt="" className={styles.otherCardImage} src={imageUrl} />
       <span className={styles.createRoleplayShade} />
       <span className={styles.createRoleplayCopy}>
-        <span className={styles.otherCardTitle}>Your Roleplay</span>
+        <span className={styles.otherCardTitle}>
+          {t('explore.yourRoleplay')}
+        </span>
         <span className={styles.otherCardDescription}>
-          Create your own story with {characterName}
+          {t('explore.createRoleplay', { name: characterName })}
         </span>
         <span className={styles.createRoleplayCta}>
-          <span>Soon</span>
+          <span>{t('explore.soon')}</span>
         </span>
       </span>
     </button>
@@ -242,6 +262,7 @@ function ScenarioPromoCarousel({
   scenario: ScenarioListItem;
   onSeeContent: () => void;
 }) {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const swipeStartXRef = useRef<number | null>(null);
   const slides = buildPromoSlides(scenario, promo);
@@ -289,7 +310,7 @@ function ScenarioPromoCarousel({
 
   return (
     <div
-      aria-label={`${scenario.name} promo previews`}
+      aria-label={t('explore.aria.promoPreviews', { name: scenario.name })}
       className={styles.carousel}
       role="group"
       tabIndex={0}
@@ -322,7 +343,9 @@ function ScenarioPromoCarousel({
                   />
                   {slide.scenario.promoVideoUrl ? (
                     <video
-                      aria-label={`${slide.scenario.name} video preview`}
+                      aria-label={t('explore.aria.videoPreview', {
+                        name: slide.scenario.name,
+                      })}
                       autoPlay={isActive}
                       className={styles.slideMedia}
                       loop
@@ -336,7 +359,7 @@ function ScenarioPromoCarousel({
               ) : null}
 
               {slide.type === 'media'
-                ? renderMediaItem(slide.item, slide.mediaIndex)
+                ? renderMediaItem(slide.item, slide.mediaIndex, t)
                 : null}
 
               {slide.type === 'see-content' ? (
@@ -371,14 +394,16 @@ function ScenarioPromoCarousel({
                     })}
                   </div>
                   <div className={styles.seeContentOverlay}>
-                    <p className={styles.seeContentTitle}>Want more?</p>
+                    <p className={styles.seeContentTitle}>
+                      {t('explore.wantMore')}
+                    </p>
                     <button
                       className={styles.seeContentButton}
                       tabIndex={isActive ? 0 : -1}
                       type="button"
                       onClick={onSeeContent}
                     >
-                      <span>View Content</span>
+                      <span>{t('explore.actions.viewContent')}</span>
                       <ChevronRightIcon aria-hidden="true" />
                     </button>
                   </div>
@@ -392,7 +417,7 @@ function ScenarioPromoCarousel({
       {hasMultipleSlides ? (
         <>
           <button
-            aria-label="Previous promo preview"
+            aria-label={t('explore.aria.previousPromo')}
             className={cn(styles.carouselArrow, [styles.carouselArrowLeft])}
             type="button"
             onPointerDown={(event) => event.stopPropagation()}
@@ -401,7 +426,7 @@ function ScenarioPromoCarousel({
             <ChevronLeftIcon aria-hidden="true" />
           </button>
           <button
-            aria-label="Next promo preview"
+            aria-label={t('explore.aria.nextPromo')}
             className={cn(styles.carouselArrow, [styles.carouselArrowRight])}
             type="button"
             onPointerDown={(event) => event.stopPropagation()}
@@ -432,6 +457,7 @@ export function ScenarioDetailsDrawer({
   open,
   scenario,
 }: ScenarioDetailsDrawerProps) {
+  const { t } = useTranslation();
   const titleId = useId();
   const [isClosing, setIsClosing] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
@@ -480,7 +506,7 @@ export function ScenarioDetailsDrawer({
   if (!open || !scenario) return null;
 
   const drawerState = isClosing ? 'closing' : 'open';
-  const personality = formatPersonality(scenario.character.personality);
+  const personality = formatPersonality(scenario.character.personality, t);
   const otherScenarios =
     promoQuery.data?.characterScenarios
       .filter((characterScenario) => characterScenario.id !== scenario.id)
@@ -503,7 +529,7 @@ export function ScenarioDetailsDrawer({
         onClick={(event) => event.stopPropagation()}
       >
         <button
-          aria-label="Close scenario details"
+          aria-label={t('explore.aria.closeScenarioDetails')}
           className={styles.close}
           type="button"
           onClick={requestClose}
@@ -540,7 +566,7 @@ export function ScenarioDetailsDrawer({
               className={styles.otherSection}
             >
               <h3 className={styles.otherTitle} id={`${titleId}-other`}>
-                More of {scenario.character.name}
+                {t('explore.moreOf', { name: scenario.character.name })}
               </h3>
 
               <div

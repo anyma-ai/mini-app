@@ -29,7 +29,11 @@ import {
   CustomScenarioType,
 } from '@/common/consts/character';
 
-import { mapMediaOptions, mapTextOptions } from './create-character.helpers';
+import {
+  mapMediaOptions,
+  mapTextOptions,
+  toTranslationKey,
+} from './create-character.helpers';
 import type { Draft, WizardStepId } from './create-character.types';
 import {
   BookHeartIcon,
@@ -53,6 +57,15 @@ export const WIZARD_STEPS: Array<{
   { id: 'body', title: 'Body', icon: PersonStandingIcon },
   { id: 'profile', title: 'Profile', icon: BookHeartIcon },
 ];
+
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+export function getWizardSteps(t: Translate) {
+  return WIZARD_STEPS.map((step) => ({
+    ...step,
+    title: t(`createCharacter.steps.${step.id}`),
+  }));
+}
 
 export const DEFAULT_DRAFT: Draft = {
   type: CharacterType.Realistic,
@@ -138,3 +151,68 @@ export const scenarioOptions = mapTextOptions(
   CUSTOM_SCENARIO_LABEL,
   CUSTOM_SCENARIO_EMOJI,
 );
+
+export function getLocalizedCreateCharacterOptions(t: Translate) {
+  return {
+    bodyTypeOptions: mapMediaOptions(
+      BODY_ORDER,
+      CHARACTER_BODY_TYPE_MEDIA,
+      (value) => t(`character.bodyType.${value}`),
+    ),
+    breastSizeOptions: mapMediaOptions(
+      BREAST_ORDER,
+      CHARACTER_BREAST_SIZE_MEDIA,
+      (value) => t(`character.breastSize.${value}`),
+    ),
+    buttSizeOptions: mapMediaOptions(
+      Object.values(ButtSize),
+      CHARACTER_BUTT_SIZE_MEDIA,
+      (value) => t(`character.buttSize.${value}`),
+    ),
+    ethnicityOptions: mapMediaOptions(
+      Object.values(CharacterEthnicity),
+      CHARACTER_ETHNICITY_MEDIA,
+      (value) => t(`character.ethnicity.${value}`),
+    ),
+    eyeColorOptions: mapMediaOptions(
+      Object.values(CharacterEyeColor),
+      CHARACTER_EYE_COLOR_MEDIA,
+      (value) => t(`character.eyeColor.${value}`),
+    ),
+    fetishOptions: mapTextOptions(
+      Object.values(CharacterFetish),
+      (value) => t(`character.fetish.${value}`),
+      CHARACTER_FETISH_EMOJI,
+    ),
+    hairColorOptions: mapMediaOptions(
+      Object.values(CharacterHairColor),
+      CHARACTER_HAIR_COLOR_MEDIA,
+      (value) => t(`character.hairColor.${value}`),
+    ),
+    hairStyleOptions: mapMediaOptions(
+      Object.values(CharacterHairStyle),
+      CHARACTER_HAIR_STYLE_MEDIA,
+      (value) => t(`character.hairStyle.${value}`),
+    ),
+    hobbyOptions: mapTextOptions(
+      Object.values(CharacterHobby),
+      (value) => t(`character.hobby.${value}`),
+      CHARACTER_HOBBY_EMOJI,
+    ),
+    personalityOptions: mapTextOptions(
+      Object.values(CharacterPersonality),
+      (value) => t(`character.personality.${value}`),
+      CHARACTER_PERSONALITY_EMOJI,
+    ),
+    scenarioOptions: mapTextOptions(
+      Object.values(CustomScenarioType),
+      (value) => t(`character.scenario.${toTranslationKey(value)}`),
+      CUSTOM_SCENARIO_EMOJI,
+    ),
+    typeOptions: mapMediaOptions(
+      Object.values(CharacterType),
+      CHARACTER_TYPE_MEDIA,
+      (value) => t(`character.type.${value}`),
+    ),
+  };
+}

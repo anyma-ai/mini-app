@@ -1,4 +1,9 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 
 import { DEFAULT_DRAFT, WIZARD_STEPS } from './create-character.data';
 import type { Draft } from './create-character.types';

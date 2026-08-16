@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -81,6 +82,7 @@ function ScenarioCard({
   onOpen: (scenario: ScenarioListItem) => void;
   scenario: ScenarioListItem;
 }) {
+  const { t } = useTranslation();
   const [isMobilePreviewPlaying, setIsMobilePreviewPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isMobilePreviewActiveRef = useRef(isMobilePreviewActive);
@@ -159,7 +161,7 @@ function ScenarioCard({
 
   return (
     <article
-      aria-label={`Open ${scenario.name} scenario details`}
+      aria-label={t('explore.aria.openScenario', { name: scenario.name })}
       className={styles.card}
       data-preview-active={isMobilePreviewActive}
       data-preview-playing={isMobilePreviewActive && isMobilePreviewPlaying}
@@ -180,7 +182,9 @@ function ScenarioCard({
         />
         {scenario.promoVideoUrl ? (
           <video
-            aria-label={`${scenario.name} preview`}
+            aria-label={t('explore.aria.videoPreview', {
+              name: scenario.name,
+            })}
             className={styles.video}
             loop
             muted
@@ -236,8 +240,10 @@ function ScenarioCardSkeleton() {
 }
 
 function StoriesSkeleton() {
+  const { t } = useTranslation();
+
   return (
-    <section aria-label="Stories" className={styles.storiesSection}>
+    <section aria-label={t('explore.aria.stories')} className={styles.storiesSection}>
       <div className={styles.storyList}>
         {Array.from({ length: 8 }, (_, index) => (
           <div className={styles.storySkeleton} key={index}>
@@ -289,6 +295,7 @@ function openScenarioDeepLink(scenario: ScenarioListItem) {
 }
 
 export function ExplorePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState('');
@@ -330,7 +337,7 @@ export function ExplorePage() {
   const errorMessage =
     scenariosQuery.error instanceof Error
       ? scenariosQuery.error.message
-      : 'Failed to load scenarios.';
+      : t('explore.failed');
 
   const storiesQuery = useQuery({
     queryKey: ['stories'],
@@ -670,7 +677,7 @@ export function ExplorePage() {
   const handleStoryStartChat = async (characterId: string) => {
     const slug = await getScenarioSlugForCharacter(characterId);
     if (!slug || !openScenarioSlugDeepLink(slug)) {
-      throw new Error('Scenario chat is unavailable');
+      throw new Error(t('explore.chatUnavailable'));
     }
   };
 
@@ -689,7 +696,10 @@ export function ExplorePage() {
       {storiesQuery.isLoading ? (
         <StoriesSkeleton />
       ) : orderedGroups.length > 0 ? (
-        <section aria-label="Stories" className={styles.storiesSection}>
+        <section
+          aria-label={t('explore.aria.stories')}
+          className={styles.storiesSection}
+        >
           <div className={styles.storyList} ref={listRef}>
             {orderedGroups.map((group) => {
               const hasUnseenStory = group.stories.some(
@@ -698,7 +708,9 @@ export function ExplorePage() {
 
               return (
                 <button
-                  aria-label={`Open ${group.character.name} stories`}
+                  aria-label={t('storyViewer.stories', {
+                    name: group.character.name,
+                  })}
                   className={styles.story}
                   key={group.character.id}
                   type="button"
@@ -742,7 +754,7 @@ export function ExplorePage() {
               </svg>
             </span>
             <input
-              placeholder="Search girls, roleplays..."
+              placeholder={t('explore.searchPlaceholder')}
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
             />
@@ -750,7 +762,11 @@ export function ExplorePage() {
 
           <span className={styles.filtersDivider} aria-hidden="true" />
 
-          <div className={styles.tags} role="toolbar" aria-label="Scenario filters">
+          <div
+            className={styles.tags}
+            role="toolbar"
+            aria-label={t('explore.aria.filters')}
+          >
             {SCENARIO_FILTER_TAGS.map((tag) => {
               const isActive = tag === activeTag;
 
@@ -768,7 +784,11 @@ export function ExplorePage() {
                     )
                   }
                 >
-                  <span>{CHARACTER_FILTER_TAG_LABELS[tag]}</span>
+                  <span>
+                    {t(`character.filter.${tag}`, {
+                      defaultValue: CHARACTER_FILTER_TAG_LABELS[tag],
+                    })}
+                  </span>
                 </button>
               );
             })}
@@ -788,7 +808,7 @@ export function ExplorePage() {
 
         {scenariosQuery.isError ? (
           <div className={styles.alert}>
-            <strong>Unable to load scenarios</strong>
+            <strong>{t('explore.unable')}</strong>
             <span>{errorMessage}</span>
           </div>
         ) : null}
@@ -797,8 +817,8 @@ export function ExplorePage() {
         !scenariosQuery.isError &&
         scenarios.length === 0 ? (
           <div className={styles.emptyState}>
-            <strong>No scenarios yet</strong>
-            <span>No scenarios matched the current query.</span>
+            <strong>{t('explore.noResults')}</strong>
+            <span>{t('explore.noResultsDescription')}</span>
           </div>
         ) : null}
 
@@ -841,7 +861,7 @@ export function ExplorePage() {
               onClick={handleScenarioStartChat}
             >
               <MessageIcon aria-hidden="true" />
-              <span>Text her</span>
+              <span>{t('scenarioDetails.textHer')}</span>
             </button>
             <button
               className={`${styles.drawerAction} ${styles.drawerSecondary}`}
@@ -851,7 +871,7 @@ export function ExplorePage() {
               }}
             >
               <CameraIcon aria-hidden="true" />
-              <span>See content</span>
+              <span>{t('explore.actions.viewContent')}</span>
             </button>
           </>
         }

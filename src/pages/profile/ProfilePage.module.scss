@@ -213,6 +213,135 @@
   backdrop-filter: blur(20px);
 }
 
+.preferenceCard {
+  overflow: hidden;
+  border-radius: 28px;
+  background: rgba(31, 31, 38, 0.72);
+  border: 1px solid rgba(118, 116, 123, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.preferenceButton {
+  width: 100%;
+  min-height: 76px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.preferenceIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  background: rgba(187, 131, 255, 0.14);
+  color: #d2b7ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preferenceIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.preferenceCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.preferenceCopy strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.preferenceCopy small {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.preferenceValue {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.languageModalContent {
+  padding: 0 20px 20px;
+}
+
+.languageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.languageOption {
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text);
+  text-align: left;
+}
+
+.languageOptionActive {
+  background: rgba(255, 137, 171, 0.14);
+  border-color: rgba(255, 137, 171, 0.3);
+}
+
+.languageOption strong,
+.languageOption small {
+  display: block;
+}
+
+.languageOption strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.languageOption small {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.languageCheck {
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.languageCheck svg {
+  width: 18px;
+  height: 18px;
+}
+
+.languageError {
+  margin: 12px 0 0;
+  color: #ff8aa2;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .premiumTop {
   display: flex;
   align-items: flex-start;

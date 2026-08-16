@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { HeartIcon, LockIcon, PauseIcon, PlayIcon } from '@/assets/icons';
 import { cn } from '@/common/utils';
@@ -100,6 +101,7 @@ export function CollectionGallery({
   onClose,
   onSave,
 }: GalleryProps) {
+  const { t } = useTranslation();
   const activeIndex = activeId
     ? items.findIndex((item) => item.id === activeId)
     : -1;
@@ -471,7 +473,7 @@ export function CollectionGallery({
 
   const saveButton = (
     <button
-      aria-label={activeItem.isSaved ? 'Remove media from saved' : 'Save media'}
+      aria-label={activeItem.isSaved ? t('gallery.removeSaved') : t('gallery.save')}
       className={styles.saveButton}
       data-saved={activeItem.isSaved ? 'true' : undefined}
       type="button"
@@ -483,7 +485,7 @@ export function CollectionGallery({
 
   return createPortal(
     <div
-      aria-label="Media gallery"
+      aria-label={t('gallery.media')}
       aria-modal="true"
       className={styles.gallery}
       data-chrome-visible={isChromeVisible ? 'true' : 'false'}
@@ -522,7 +524,7 @@ export function CollectionGallery({
             }
           >
             <button
-              aria-label="Close gallery"
+              aria-label={t('gallery.close')}
               className={styles.closeButton}
               type="button"
               onClick={closeGallery}
@@ -530,7 +532,7 @@ export function CollectionGallery({
 
             {activeItem.type === 'video' ? (
               <video
-                aria-label="Active video"
+                aria-label={t('gallery.activeVideo')}
                 autoPlay
                 className={cn(styles.media, [], {
                   [styles.mediaBlurred]: Boolean(activeItem.isBlurred),
@@ -595,7 +597,9 @@ export function CollectionGallery({
                   <span className={styles.videoControls}>
                     <button
                       aria-label={
-                        activeVideoState.paused ? 'Play video' : 'Pause video'
+                        activeVideoState.paused
+                          ? t('gallery.playVideo')
+                          : t('gallery.pauseVideo')
                       }
                       className={styles.videoControlButton}
                       type="button"
@@ -608,7 +612,7 @@ export function CollectionGallery({
                       )}
                     </button>
                     <input
-                      aria-label="Video progress"
+                      aria-label={t('gallery.progress')}
                       className={styles.videoProgress}
                       defaultValue={0}
                       disabled={activeVideoState.duration <= 0}
@@ -636,7 +640,7 @@ export function CollectionGallery({
 
       {items.length > 1 ? (
         <aside
-          aria-label="Gallery thumbnails"
+          aria-label={t('gallery.thumbnails')}
           className={styles.thumbnails}
           data-gallery-content="true"
           data-gallery-gesture-ignore="true"
@@ -646,7 +650,7 @@ export function CollectionGallery({
 
             return (
               <button
-                aria-label={`Open media ${index + 1}`}
+                aria-label={t('gallery.openMedia', { index: index + 1 })}
                 aria-current={active ? 'true' : undefined}
                 className={cn(styles.thumbnail, [], {
                   [styles.thumbnailActive]: active,

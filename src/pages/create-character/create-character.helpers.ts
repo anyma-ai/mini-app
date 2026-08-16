@@ -10,26 +10,33 @@ export function titleize(value: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+export function toTranslationKey(value: string) {
+  return value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
+
 export function mapMediaOptions<T extends string>(
   values: readonly T[],
   media: Record<T, string>,
-  labelMap?: Partial<Record<T, string>>,
+  labelMap?: Partial<Record<T, string>> | ((value: T) => string),
 ): Array<MediaOption<T>> {
   return values.map((value) => ({
     value,
-    label: labelMap?.[value] ?? titleize(value),
+    label:
+      typeof labelMap === 'function'
+        ? labelMap(value)
+        : labelMap?.[value] ?? titleize(value),
     mediaUrl: media[value],
   }));
 }
 
 export function mapTextOptions<T extends string>(
   values: readonly T[],
-  labelMap: Record<T, string>,
+  labelMap: Record<T, string> | ((value: T) => string),
   iconMap?: Record<T, string>,
 ): Array<TextOption<T>> {
   return values.map((value) => ({
     value,
-    label: labelMap[value],
+    label: typeof labelMap === 'function' ? labelMap(value) : labelMap[value],
     icon: iconMap?.[value],
   }));
 }

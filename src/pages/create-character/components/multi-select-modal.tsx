@@ -1,4 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { type ReactNode,useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/common/utils';
 
@@ -7,7 +8,7 @@ import type { TextOption } from '../create-character.types';
 import { Button, Input, Modal, Typography } from '../ui';
 
 export function MultiSelectModal<T extends string>({
-  actionLabel = 'Done',
+  actionLabel,
   actionLoading = false,
   clearValue,
   limit,
@@ -33,6 +34,7 @@ export function MultiSelectModal<T extends string>({
   title: string;
   value: T[];
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const normalizedQuery = query.trim().toLowerCase();
   const filteredOptions = useMemo(
@@ -84,7 +86,7 @@ export function MultiSelectModal<T extends string>({
           type="button"
           onClick={onSubmit ?? onClose}
         >
-          {actionLabel}
+          {actionLabel ?? t('common.done')}
         </Button>
       }
       open={open}
@@ -93,15 +95,15 @@ export function MultiSelectModal<T extends string>({
     >
       <div className={styles.modalBody}>
         <Input
-          aria-label={`Search ${title}`}
+          aria-label={t('common.search')}
           fullWidth
-          placeholder="Search"
+          placeholder={t('common.search')}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
         {limit > 1 ? (
           <Typography tone="muted" variant="caption">
-            {value.length}/{limit} selected
+            {t('common.selectedCount', { count: value.length, limit })}
           </Typography>
         ) : null}
         <div className={styles.modalOptionGrid}>

@@ -1,4 +1,5 @@
-import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { type ComponentPropsWithoutRef, forwardRef, type ReactNode } from 'react'
+
 import s from './Input.module.scss'
 
 type InputSize = 'sm' | 'md' | 'lg'

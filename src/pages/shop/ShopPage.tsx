@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { buyGift, getGifts, sendGift } from '@/api/gifts';
@@ -23,6 +24,7 @@ function getSafeReturnTo(value: string | null) {
 }
 
 export function ShopPage() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -236,12 +238,12 @@ export function ShopPage() {
       ? giftsErrorValue.message
       : plansErrorValue instanceof Error
         ? plansErrorValue.message
-        : 'Failed to load the boutique';
+        : t('shop.failed');
   const availableGifts = gifts.filter((gift) => !gift.isBought);
   const ownedGifts = gifts.filter((gift) => gift.isBought);
 
   if (giftsLoading || plansLoading) {
-    return <div className={s.empty}>Opening the boutique...</div>;
+    return <div className={s.empty}>{t('shop.opening')}</div>;
   }
 
   if (hasError) {
@@ -252,7 +254,7 @@ export function ShopPage() {
     <div className={s.page}>
       <section className={s.section} id="credit-packs">
         <div className={s.sectionHeader}>
-          <h2 className={s.sectionTitle}>Credit Packs</h2>
+          <h2 className={s.sectionTitle}>{t('shop.creditPacks')}</h2>
         </div>
 
         <div className={`${s.packs} app-hide-scrollbar`}>
@@ -263,11 +265,11 @@ export function ShopPage() {
               <article key={plan.id} className={isFeatured ? s.packFeatured : s.pack}>
                 <div>
                   <div className={s.packMeta}>
-                    {isFeatured ? 'Most Popular' : 'Default'}
+                    {isFeatured ? t('shop.mostPopular') : t('shop.defaultPack')}
                   </div>
                   <div className={s.packAmountRow}>
                     <span className={s.packAmount}>{plan.air}</span>
-                    <span className={s.packLabel}>Credits</span>
+                    <span className={s.packLabel}>{t('common.credits')}</span>
                   </div>
                 </div>
 
@@ -278,7 +280,7 @@ export function ShopPage() {
                     onClick={() => handlePlanPurchase(plan)}
                     disabled={buyingPlanId === plan.id}
                   >
-                    <span className={s.packCtaLabel}>Buy Now</span>
+                    <span className={s.packCtaLabel}>{t('shop.buyNow')}</span>
                     <span className={s.packCtaDivider}>-</span>
                     <span className={s.packCtaPrice}>
                       <TgStarWhiteIcon className={s.packPriceIcon} />
@@ -294,13 +296,13 @@ export function ShopPage() {
 
       <section className={s.section}>
         <div className={s.sectionHeader}>
-          <h2 className={s.sectionTitle}>Gifts</h2>
+          <h2 className={s.sectionTitle}>{t('shop.gifts')}</h2>
           <button
             type="button"
             className={s.sectionAction}
             onClick={() => navigate('/subscriptions')}
           >
-            Premium Access
+            {t('shop.premiumAccess')}
           </button>
         </div>
 
@@ -335,7 +337,7 @@ export function ShopPage() {
                   >
                     auto_awesome
                   </span>
-                  {gift.isBought ? 'Owned' : `${gift.price}`}
+                  {gift.isBought ? t('common.owned') : `${gift.price}`}
                 </button>
               </div>
             </article>
@@ -346,8 +348,8 @@ export function ShopPage() {
       {ownedGifts.length > 0 ? (
         <section className={s.section}>
           <div className={s.sectionHeader}>
-            <h2 className={s.sectionTitle}>Owned Gifts</h2>
-            <div className={s.sectionMeta}>Collected</div>
+            <h2 className={s.sectionTitle}>{t('shop.ownedGifts')}</h2>
+            <div className={s.sectionMeta}>{t('shop.collected')}</div>
           </div>
 
           <div className={s.gifts}>
@@ -379,7 +381,7 @@ export function ShopPage() {
                     <span className="material-symbols-outlined filled">
                       auto_awesome
                     </span>
-                    {user?.hasActiveChat ? 'Gift' : 'Owned'}
+                    {user?.hasActiveChat ? t('shop.gift') : t('common.owned')}
                   </button>
                 </div>
               </article>
@@ -391,17 +393,16 @@ export function ShopPage() {
       {!user?.isSubscribed && (
         <section className={s.membershipCard}>
           <div className={s.membershipBody}>
-            <h2 className={s.membershipTitle}>SweetMe Infinite</h2>
+            <h2 className={s.membershipTitle}>{t('shop.infiniteTitle')}</h2>
             <p className={s.membershipCopy}>
-              Unlimited intimacy points, daily free credits, and access to
-              locked story paths.
+              {t('shop.infiniteCopy')}
             </p>
             <button
               type="button"
               className={s.membershipButton}
               onClick={() => navigate('/subscriptions')}
             >
-              Unlock Membership
+              {t('shop.unlockMembership')}
             </button>
           </div>
         </section>

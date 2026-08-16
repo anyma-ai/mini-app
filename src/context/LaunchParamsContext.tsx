@@ -106,6 +106,7 @@ export function LaunchParamsProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLaunchParams() {
   const context = useContext(LaunchParamsContext);
   if (!context) {

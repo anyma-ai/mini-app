@@ -1,4 +1,4 @@
-import type { IUser } from '@/common/types';
+import type { IUser, Language } from '@/common/types';
 
 import { apiFetch, localFetch } from './client';
 
@@ -7,6 +7,29 @@ export async function getMe(): Promise<IUser> {
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || 'Failed to load user');
+  }
+
+  const data = (await response.json()) as IUser | { data: IUser };
+  if (typeof data === 'object' && data && 'data' in data) {
+    return (data as { data: IUser }).data;
+  }
+  return data as IUser;
+}
+
+export type UpdateMePayload = {
+  languageUI?: Language;
+};
+
+export async function patchMe(payload: UpdateMePayload): Promise<IUser> {
+  const response = await apiFetch('/me', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Failed to update user');
   }
 
   const data = (await response.json()) as IUser | { data: IUser };
