@@ -20,7 +20,7 @@ export type UpdateMePayload = {
   languageUI?: Language;
 };
 
-export async function patchMe(payload: UpdateMePayload): Promise<IUser> {
+export async function patchMe(payload: UpdateMePayload): Promise<IUser | null> {
   const response = await apiFetch('/me', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -32,7 +32,12 @@ export async function patchMe(payload: UpdateMePayload): Promise<IUser> {
     throw new Error(text || 'Failed to update user');
   }
 
-  const data = (await response.json()) as IUser | { data: IUser };
+  const text = await response.text();
+  if (!text.trim()) {
+    return null;
+  }
+
+  const data = JSON.parse(text) as IUser | { data: IUser };
   if (typeof data === 'object' && data && 'data' in data) {
     return (data as { data: IUser }).data;
   }

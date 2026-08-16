@@ -271,6 +271,10 @@
   color: var(--color-primary);
   font-size: 13px;
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .languageModalContent {
@@ -301,6 +305,21 @@
 .languageOptionActive {
   background: rgba(255, 137, 171, 0.14);
   border-color: rgba(255, 137, 171, 0.3);
+}
+
+.languageInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.languageEmoji {
+  flex: 0 0 auto;
+  width: 28px;
+  font-size: 22px;
+  line-height: 1;
+  text-align: center;
 }
 
 .languageOption strong,

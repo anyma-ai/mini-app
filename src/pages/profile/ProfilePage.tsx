@@ -86,9 +86,14 @@ function LanguageModal({
               type="button"
               onClick={() => onSelect(language)}
             >
-              <span>
-                <strong>{option.nativeLabel}</strong>
-                <small>{option.label}</small>
+              <span className={s.languageInfo}>
+                <span className={s.languageEmoji} aria-hidden="true">
+                  {option.emoji}
+                </span>
+                <span>
+                  <strong>{option.nativeLabel}</strong>
+                  <small>{option.label}</small>
+                </span>
               </span>
               <span className={s.languageCheck}>
                 {pending ? '...' : active ? <CheckIcon aria-hidden="true" /> : ''}
@@ -223,6 +228,7 @@ export function ProfilePage() {
             <small>{t('profile.languageSubtitle')}</small>
           </span>
           <span className={s.preferenceValue}>
+            <span aria-hidden="true">{LANGUAGE_OPTIONS[currentLanguage].emoji}</span>
             {LANGUAGE_OPTIONS[currentLanguage].nativeLabel}
           </span>
         </button>

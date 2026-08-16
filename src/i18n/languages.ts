@@ -17,35 +17,43 @@ export type SupportedLanguage = (typeof SUPPORTED_UI_LANGUAGES)[number];
 export const LANGUAGE_OPTIONS: Record<
   SupportedLanguage,
   {
+    emoji: string;
     label: string;
     nativeLabel: string;
   }
 > = {
   [Language.EN]: {
+    emoji: '🇺🇸',
     label: 'English',
     nativeLabel: 'English',
   },
   [Language.Ru]: {
+    emoji: '🇷🇺',
     label: 'Russian',
     nativeLabel: 'Русский',
   },
   [Language.Es]: {
+    emoji: '🇪🇸',
     label: 'Spanish',
     nativeLabel: 'Español',
   },
   [Language.Fr]: {
+    emoji: '🇫🇷',
     label: 'French',
     nativeLabel: 'Français',
   },
   [Language.De]: {
+    emoji: '🇩🇪',
     label: 'German',
     nativeLabel: 'Deutsch',
   },
   [Language.It]: {
+    emoji: '🇮🇹',
     label: 'Italian',
     nativeLabel: 'Italiano',
   },
   [Language.Pl]: {
+    emoji: '🇵🇱',
     label: 'Polish',
     nativeLabel: 'Polski',
   },

@@ -53,7 +53,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const updatedUser = await patchMe({ languageUI: nextLanguage });
-      queryClient.setQueryData<IUser>(['me'], updatedUser);
+      if (updatedUser) {
+        queryClient.setQueryData<IUser>(['me'], updatedUser);
+      }
     } catch (updateError) {
       if (previousUser) {
         queryClient.setQueryData<IUser>(['me'], previousUser);
