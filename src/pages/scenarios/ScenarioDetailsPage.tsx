@@ -56,6 +56,7 @@ import {
   type UnblurScenarioVideoResponse,
 } from '@/common/types';
 import { cn } from '@/common/utils';
+import { useLaunchParams } from '@/context/LaunchParamsContext';
 import { useUser } from '@/context/UserContext';
 
 import s from './ScenarioDetailsPage.module.scss';
@@ -776,6 +777,7 @@ export function ScenarioDetailsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, refresh } = useUser();
+  const launchParams = useLaunchParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const mediaSwitchRef = useRef<HTMLDivElement | null>(null);
   const hasScrolledToInitialTabRef = useRef(false);
@@ -826,6 +828,7 @@ export function ScenarioDetailsPage() {
     mutationFn: (videoId: string) => unblurScenarioVideo(id ?? '', videoId),
     onSuccess: async (response) => {
       const unblurredVideo = extractUnblurredVideo(response);
+      const shouldCloseMiniApp = Boolean(id && launchParams.scenarioId === id);
 
       if (id && unblurredVideo) {
         const queryKey = scenarioKeys.media(id, ContentItemType.Video, {
@@ -850,7 +853,9 @@ export function ScenarioDetailsPage() {
           };
         });
 
-        setGalleryActiveId(unblurredVideo.id);
+        if (!shouldCloseMiniApp) {
+          setGalleryActiveId(unblurredVideo.id);
+        }
       }
 
       setLockedVideo(null);
@@ -859,6 +864,10 @@ export function ScenarioDetailsPage() {
         queryClient.invalidateQueries({ queryKey: ['me'] }),
       ]);
       await refresh();
+
+      if (shouldCloseMiniApp) {
+        TelegramWebApp.close();
+      }
     },
   });
 
