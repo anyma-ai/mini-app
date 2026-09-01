@@ -229,10 +229,14 @@ function CollectionEmptyState({
 }
 
 function CollectionTile({
+  isBlurred,
   item,
+  onLocked,
   onOpen,
 }: {
+  isBlurred: boolean;
   item: ICollectionItem;
+  onLocked?: () => void;
   onOpen: (id: string) => void;
 }) {
   const { t } = useTranslation();
@@ -240,7 +244,7 @@ function CollectionTile({
   const imageUrl = item.url ?? item.scenario.promoImgUrl;
 
   const handlePointerEnter = () => {
-    if (item.type !== ContentItemType.Video || item.isBlurred) return;
+    if (item.type !== ContentItemType.Video || isBlurred) return;
 
     void videoRef.current?.play().catch(() => {
       videoRef.current?.pause();
@@ -259,16 +263,19 @@ function CollectionTile({
   return (
     <button
       aria-label={
-        item.isBlurred ? t('collection.lockedItem') : t('common.collectionItem')
+        isBlurred ? t('collection.lockedItem') : t('common.collectionItem')
       }
       className={cn(styles.tile, [], {
-        [styles.tileLocked]: item.isBlurred,
+        [styles.tileLocked]: isBlurred,
       })}
       type="button"
       onClick={() => {
-        if (!item.isBlurred) {
+        if (!isBlurred) {
           onOpen(item.id);
+          return;
         }
+
+        onLocked?.();
       }}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
@@ -277,7 +284,7 @@ function CollectionTile({
         <>
           <video
             className={cn(styles.tileMedia, [], {
-              [styles.tileMediaBlurred]: item.isBlurred,
+              [styles.tileMediaBlurred]: isBlurred,
             })}
             muted
             playsInline
@@ -294,7 +301,7 @@ function CollectionTile({
         <img
           alt=""
           className={cn(styles.tileMedia, [], {
-            [styles.tileMediaBlurred]: item.isBlurred,
+            [styles.tileMediaBlurred]: isBlurred,
           })}
           loading="lazy"
           src={imageUrl}
@@ -306,7 +313,7 @@ function CollectionTile({
         <span>{item.scenario.name}</span>
       </div>
 
-      {item.isBlurred ? (
+      {isBlurred ? (
         <span aria-hidden="true" className={styles.lockOverlay}>
           <LockIcon />
         </span>
@@ -320,6 +327,7 @@ export function CollectionPage() {
   const navigate = useNavigate();
   const { error: userError, isLoading: isUserLoading, user } = useUser();
   const isReady = !isUserLoading && Boolean(user);
+  const isLockedBySubscription = Boolean(user && !user.isSubscribed);
   const [activeTab, setActiveTab] = useState<CollectionTab>('all');
   const [characterId, setCharacterId] = useState(ALL_VALUE);
   const [scenarioId, setScenarioId] = useState(ALL_VALUE);
@@ -362,17 +370,27 @@ export function CollectionPage() {
     ? filteredContentQuery
     : baseContentQuery;
 
+  const isItemBlurred = (item: ICollectionItem) =>
+    isLockedBySubscription || item.isBlurred;
+
   const items = useMemo(
     () =>
       (contentQuery.data?.pages.flatMap((page) => page.data) ?? [])
         .slice()
-        .sort((left, right) => Number(left.isBlurred) - Number(right.isBlurred)),
-    [contentQuery.data],
+        .sort(
+          (left, right) =>
+            Number(isLockedBySubscription || left.isBlurred) -
+            Number(isLockedBySubscription || right.isBlurred),
+        ),
+    [contentQuery.data, isLockedBySubscription],
   );
   const galleryItems = useMemo<GalleryItem[]>(
     () =>
       items
-        .filter((item) => !item.isBlurred && (item.url || item.scenario.promoImgUrl))
+        .filter(
+          (item) =>
+            !isItemBlurred(item) && (item.url || item.scenario.promoImgUrl),
+        )
         .map((item) => ({
           alt: `${item.character.name} ${item.scenario.name}`,
           id: item.id,
@@ -381,7 +399,7 @@ export function CollectionPage() {
           type: item.type === ContentItemType.Video ? 'video' : 'image',
           url: item.url ?? item.scenario.promoImgUrl,
         })),
-    [items],
+    [isLockedBySubscription, items],
   );
   const characterOptions = [
     {
@@ -606,8 +624,14 @@ export function CollectionPage() {
         <div className={styles.grid}>
           {items.map((item) => (
             <CollectionTile
+              isBlurred={isItemBlurred(item)}
               item={item}
               key={item.id}
+              onLocked={
+                isLockedBySubscription
+                  ? () => navigate('/subscriptions')
+                  : undefined
+              }
               onOpen={setGalleryActiveId}
             />
           ))}
