@@ -24,16 +24,20 @@ import {
 } from '@/api/stories';
 import {
   CameraIcon,
+  HeartIcon,
   MessageIcon,
+  SparklesIcon,
 } from '@/assets/icons';
 import {
   CHARACTER_FILTER_PARAMS,
   CHARACTER_FILTER_TAG_LABELS,
   CharacterFilterTag,
 } from '@/common/consts/character';
-import type {
-  Paginated,
-  ScenarioListItem,
+import { useCharacterTypeParam } from '@/common/hooks/useCharacterTypeParam';
+import {
+  CharacterType,
+  type Paginated,
+  type ScenarioListItem,
 } from '@/common/types';
 import { cn } from '@/common/utils';
 
@@ -298,6 +302,7 @@ export function ExplorePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { characterType, setCharacterType } = useCharacterTypeParam();
   const [searchValue, setSearchValue] = useState('');
   const [activeTag, setActiveTag] = useState<CharacterFilterTag | null>(null);
   const [selectedScenario, setSelectedScenario] =
@@ -320,8 +325,14 @@ export function ExplorePage() {
     activeTag == null
       ? undefined
       : (CHARACTER_FILTER_PARAMS[activeTag] as Partial<ScenarioListQuery>);
+  const nextCharacterType =
+    characterType === CharacterType.Realistic
+      ? CharacterType.Anime
+      : CharacterType.Realistic;
+  const nextCharacterTypeLabel = t(`explore.typeToggle.${nextCharacterType}`);
   const query: ScenarioListQuery = {
     ...EXPLORE_SCENARIOS_QUERY,
+    type: characterType,
     ...(activeTagQuery ?? {}),
     ...(normalizedSearchValue ? { search: normalizedSearchValue } : {}),
   };
@@ -742,23 +753,46 @@ export function ExplorePage() {
 
       <section className={styles.section}>
         <div className={styles.filters}>
-          <label className={styles.searchInput}>
-            <span className={styles.searchIcon} aria-hidden="true">
-              <svg fill="none" height="18" viewBox="0 0 18 18" width="18">
-                <path
-                  d="m12.75 12.75 3 3M14.25 8.25a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="1.7"
-                />
-              </svg>
-            </span>
-            <input
-              placeholder={t('explore.searchPlaceholder')}
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-            />
-          </label>
+          <div className={styles.searchRow}>
+            <label className={styles.searchInput}>
+              <span className={styles.searchIcon} aria-hidden="true">
+                <svg fill="none" height="18" viewBox="0 0 18 18" width="18">
+                  <path
+                    d="m12.75 12.75 3 3M14.25 8.25a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeWidth="1.7"
+                  />
+                </svg>
+              </span>
+              <input
+                placeholder={t('explore.searchPlaceholder')}
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+              />
+            </label>
+
+            <button
+              aria-label={t('explore.typeToggle.switchTo', {
+                type: nextCharacterTypeLabel,
+              })}
+              className={cn(styles.typeToggle, [], {
+                [styles.typeToggleAnime]:
+                  nextCharacterType === CharacterType.Anime,
+                [styles.typeToggleRealistic]:
+                  nextCharacterType === CharacterType.Realistic,
+              })}
+              type="button"
+              onClick={() => setCharacterType(nextCharacterType)}
+            >
+              {nextCharacterType === CharacterType.Anime ? (
+                <SparklesIcon aria-hidden="true" />
+              ) : (
+                <HeartIcon aria-hidden="true" />
+              )}
+              <span>{nextCharacterTypeLabel}</span>
+            </button>
+          </div>
 
           <span className={styles.filtersDivider} aria-hidden="true" />
 
