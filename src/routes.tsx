@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { MiniAppLayout } from '@/layouts/MiniAppLayout';
+import { BundlesPage } from '@/pages/bundles/BundlesPage';
 import { CollectionPage } from '@/pages/collection/CollectionPage';
 import { CompanionPage } from '@/pages/companions/CompanionPage';
 import { CreateCharacterPage } from '@/pages/create-character/CreateCharacterPage';
@@ -36,6 +37,7 @@ export function AppRoutes() {
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
+        <Route path="/bundles" element={<BundlesPage />} />
         <Route path="/companions/:id" element={<CompanionPage />} />
         <Route path="/girls/:id" element={<CompanionPage />} />
         <Route path="/scenarios/:id" element={<ScenarioDetailsPage />} />

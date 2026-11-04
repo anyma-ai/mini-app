@@ -59,13 +59,14 @@ export function MiniAppLayout() {
     searchParams.get('isCustom') === '1' ||
     searchParams.get('isCustom') === 'true';
   const isSubscriptions = pathname === '/subscriptions';
+  const isBundles = pathname === '/bundles';
   const isCompanion =
     pathname.startsWith('/companions/') || pathname.startsWith('/girls/');
   const isCatalogCompanion = isCompanion && !isCustomCompanion;
   const isScenarioDetails = pathname.startsWith('/scenarios/');
   const isExplore = pathname === '/explore';
   const isCreateWizard = pathname === '/create-character';
-  const showDock = !isSubscriptions && !isCatalogCompanion;
+  const showDock = !isSubscriptions && !isBundles && !isCatalogCompanion;
   const activeDockPath =
     dockItems.find(
       (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
@@ -82,6 +83,8 @@ export function MiniAppLayout() {
         <div className={s.ambient} />
         {isSubscriptions ? (
           <NoirTopBar mode="back" title={t('layout.upgradePremium')} />
+        ) : isBundles ? (
+          <NoirTopBar mode="back" title={t('bundles.title')} />
         ) : isCatalogCompanion ? (
           <NoirTopBar mode="back" title={t('layout.scenarios')} />
         ) : (

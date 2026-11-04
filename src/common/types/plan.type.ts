@@ -1,3 +1,5 @@
+import type { IGift } from './gift.type';
+
 export enum PlanPeriod {
   Day = 'day',
   Month = 'month',
@@ -7,11 +9,16 @@ export enum PlanPeriod {
 export enum PlanType {
   Subscription = 'subscription',
   Air = 'air',
+  Bundle = 'bundle',
 }
 
 export interface IPlanItem {
   emoji: string;
   value: string;
+}
+
+export interface IPlanBundle {
+  gifts: string[];
 }
 
 export interface IPlan {
@@ -23,4 +30,11 @@ export interface IPlan {
   price: number;
   isRecommended: boolean;
   air: number;
+  bundle?: IPlanBundle;
+}
+
+export interface IPlanBundles {
+  plans: IPlan[];
+  gifts: IGift[];
+  expiresAt: string;
 }

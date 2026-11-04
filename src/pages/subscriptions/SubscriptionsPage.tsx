@@ -9,17 +9,11 @@ import { getPlans } from '@/api/plans';
 import oliviaImage from '@/assets/characters/olivia.webp';
 import { SparklesIcon, TgStarWhiteIcon } from '@/assets/icons';
 import { type IPlan, PlanPeriod, PlanType } from '@/common/types';
-import { cn } from '@/common/utils';
+import { cn, comparePlansByPeriod, formatPlanPeriod } from '@/common/utils';
 import { useLaunchParams } from '@/context/LaunchParamsContext';
 import { useUser } from '@/context/UserContext';
 
 import s from './SubscriptionsPage.module.scss';
-
-const periodOrder: Record<PlanPeriod, number> = {
-  [PlanPeriod.Day]: 0,
-  [PlanPeriod.Month]: 1,
-  [PlanPeriod.Year]: 2,
-};
 
 const DISCOUNTS = [0, 0.25, 0.5, 0.75] as const;
 
@@ -46,18 +40,6 @@ function getPricePerDay(plan: IPlan) {
 }
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
-
-function formatTitle(plan: IPlan, t: Translate) {
-  const count = plan.periodCount ?? 1;
-  const periodKey =
-    plan.period === PlanPeriod.Day
-      ? 'subscriptions.period.day'
-      : plan.period === PlanPeriod.Month
-        ? 'subscriptions.period.month'
-        : 'subscriptions.period.year';
-
-  return t(periodKey, { count });
-}
 
 function getSubtitle(plan: IPlan, index: number, t: Translate) {
   if (plan.isRecommended) return t('subscriptions.premium');
@@ -132,14 +114,7 @@ export function SubscriptionsPage() {
   } = useQuery({
     queryKey: ['plans', PlanType.Subscription],
     queryFn: () => getPlans(PlanType.Subscription),
-    select: (data) =>
-      [...data].sort((a, b) => {
-        const orderA = a.period ? periodOrder[a.period] : 0;
-        const orderB = b.period ? periodOrder[b.period] : 0;
-        const orderDiff = orderA - orderB;
-        if (orderDiff !== 0) return orderDiff;
-        return (a.periodCount ?? 0) - (b.periodCount ?? 0);
-      }),
+    select: (data) => [...data].sort(comparePlansByPeriod),
   });
 
   useEffect(() => {
@@ -274,7 +249,7 @@ export function SubscriptionsPage() {
                 >
                   <div className={s.planHead}>
                     <div>
-                      <h2 className={s.planTitle}>{formatTitle(plan, t)}</h2>
+                      <h2 className={s.planTitle}>{formatPlanPeriod(plan, t)}</h2>
                       <div className={s.planSubtitle}>
                         {getSubtitle(plan, index, t)}
                       </div>
