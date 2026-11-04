@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import TelegramWebApp from '@twa-dev/sdk';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,6 +34,16 @@ function getRemainingMs(expiresAt: string, now: number) {
   return Math.max(0, end - now);
 }
 
+function formatCountdown(ms: number) {
+  const hours = Math.floor(ms / 3_600_000);
+  const minutes = Math.floor((ms % 3_600_000) / 60_000);
+  const seconds = Math.floor((ms % 60_000) / 1000);
+
+  return [hours, minutes, seconds]
+    .map((value) => String(value).padStart(2, '0'))
+    .join(':');
+}
+
 type BundleCountdownProps = {
   expiresAt: string;
   onExpire: () => void;
@@ -58,38 +68,18 @@ function BundleCountdown({ expiresAt, onExpire }: BundleCountdownProps) {
     if (remainingMs <= 0) onExpire();
   }, [onExpire, remainingMs]);
 
-  const units = [
-    { value: Math.floor(remainingMs / 3_600_000), label: t('bundles.hours') },
-    {
-      value: Math.floor((remainingMs % 3_600_000) / 60_000),
-      label: t('bundles.minutes'),
-    },
-    {
-      value: Math.floor((remainingMs % 60_000) / 1000),
-      label: t('bundles.seconds'),
-    },
-  ];
-
   return (
-    <section className={s.timerWrap}>
-      <span className={s.timerBadge}>{t('bundles.limitedOffer')}</span>
-      <div className={s.timerCard}>
-        {units.map(({ value, label }, index) => (
-          <Fragment key={label}>
-            {index > 0 ? (
-              <span className={s.timerColon} aria-hidden>
-                :
-              </span>
-            ) : null}
-            <div className={s.timerUnit}>
-              <span className={s.timerValue}>
-                {String(value).padStart(2, '0')}
-              </span>
-              <span className={s.timerLabel}>{label}</span>
-            </div>
-          </Fragment>
-        ))}
+    <section className={s.hero}>
+      <div className={s.timer}>
+        <span className={s.timerLabel}>
+          <span className={`material-symbols-outlined filled ${s.timerIcon}`}>
+            bolt
+          </span>
+          {t('bundles.limitedOffer')}
+        </span>
+        <span className={s.timerValue}>{formatCountdown(remainingMs)}</span>
       </div>
+      <p className={s.heroNote}>{t('bundles.onlyHere')}</p>
     </section>
   );
 }
@@ -193,95 +183,7 @@ export function BundlesPage() {
     );
   }
 
-  const renderItem = ({ plan, discount, oldPrice, gifts }: BundleItem) => {
-    const isSelected = plan.id === selectedItem.plan.id;
-
-    return (
-      <button
-        type="button"
-        key={plan.id}
-        className={cn(s.card, [], { [s.cardSelected]: isSelected })}
-        data-plan-id={plan.id}
-        aria-pressed={isSelected}
-        onClick={() => setSelectedId(plan.id)}
-      >
-        {isSelected ? (
-          <div className={s.cardBanner}>{t('bundles.onlyHere')}</div>
-        ) : null}
-
-        <div className={s.cardBody}>
-          <div className={s.row}>
-            <span className={s.rowIcon}>
-              <span
-                className={`material-symbols-outlined filled ${s.rowSymbol}`}
-              >
-                workspace_premium
-              </span>
-            </span>
-            <div className={s.rowCopy}>
-              <div className={cn(s.rowTitle, [s.rowTitleAccent])}>
-                {t('bundles.premium', { period: formatPlanPeriod(plan, t) })}
-              </div>
-              <div className={s.rowDescription}>
-                {t('bundles.premiumDescription')}
-              </div>
-            </div>
-          </div>
-
-          <div className={s.row}>
-            <span className={s.rowIcon}>
-              <SparklesIcon className={s.rowSvg} aria-hidden />
-            </span>
-            <div className={s.rowCopy}>
-              <div className={s.rowTitle}>
-                {t('bundles.credits', { air: plan.air })}
-              </div>
-              <div className={s.rowDescription}>
-                {t('bundles.creditsDescription')}
-              </div>
-            </div>
-          </div>
-
-          {gifts.map((gift) => (
-            <div className={s.row} key={gift.id}>
-              <span className={s.rowIcon}>
-                <img
-                  src={gift.imgUrl}
-                  alt=""
-                  className={s.rowImage}
-                  draggable={false}
-                />
-              </span>
-              <div className={s.rowCopy}>
-                <div className={cn(s.rowTitle, [s.singleLine])}>
-                  {gift.name}
-                </div>
-                <div className={cn(s.rowDescription, [s.singleLine])}>
-                  {gift.description}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          <div className={s.cardPrice}>
-            <div className={s.priceRow}>
-              <span className={s.strike}>
-                <TgStarWhiteIcon className={s.strikeIcon} />
-                <span>{oldPrice}</span>
-              </span>
-              <span className={s.priceMain}>
-                <TgStarWhiteIcon className={s.priceIcon} />
-                <span className={s.price}>{plan.price}</span>
-              </span>
-            </div>
-            {discount > 0 ? (
-              <span className={s.discount}>-{discount}%</span>
-            ) : null}
-          </div>
-        </div>
-      </button>
-    );
-  };
+  const savings = selectedItem.oldPrice - selectedItem.plan.price;
 
   return (
     <>
@@ -291,49 +193,84 @@ export function BundlesPage() {
           onExpire={redirectToSubscriptions}
         />
 
-        <div className={s.columns}>
-          {[0, 1].map((column) => (
-            <div className={s.column} key={column}>
-              {items
-                .filter((_, index) => index % 2 === column)
-                .map(renderItem)}
-            </div>
-          ))}
+        <div className={s.stack}>
+          {items.map(({ plan, discount, oldPrice, gifts }) => {
+            const isSelected = plan.id === selectedItem.plan.id;
+
+            return (
+              <button
+                type="button"
+                key={plan.id}
+                className={cn(s.card, [], { [s.cardSelected]: isSelected })}
+                data-plan-id={plan.id}
+                aria-pressed={isSelected}
+                onClick={() => setSelectedId(plan.id)}
+              >
+                <div className={s.cardMain}>
+                  <div className={s.cardHead}>
+                    <span className={s.cardTitle}>
+                      {formatPlanPeriod(plan, t)}
+                    </span>
+                    {plan.isRecommended ? (
+                      <span className={s.cardBadge}>
+                        {t('shop.mostPopular')}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className={s.cardMeta}>
+                    <span className={s.metaItem}>
+                      <SparklesIcon className={s.metaIcon} aria-hidden />
+                      <span>{t('bundles.credits', { air: plan.air })}</span>
+                    </span>
+                    {gifts.map((gift) => (
+                      <span className={s.metaItem} key={gift.id}>
+                        <img
+                          src={gift.imgUrl}
+                          alt=""
+                          className={s.metaImage}
+                          draggable={false}
+                        />
+                        <span className={s.metaText}>{gift.name}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={s.cardPrice}>
+                  <span className={s.strike}>
+                    <TgStarWhiteIcon className={s.strikeIcon} />
+                    <span>{oldPrice}</span>
+                  </span>
+                  <span className={s.priceMain}>
+                    <TgStarWhiteIcon className={s.priceIcon} />
+                    <span className={s.price}>{plan.price}</span>
+                  </span>
+                  {discount > 0 ? (
+                    <span className={s.discount}>-{discount}%</span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <footer className={s.footer}>
         <div className={s.footerInner}>
-          <div className={s.footerHead}>
-            <div className={s.footerCopy}>
-              <div className={s.footerTitle}>{t('bundles.yourChoice')}</div>
-              <div className={s.footerSummary}>
-                <span>
-                  {t('bundles.summary', {
-                    period: formatPlanPeriod(selectedItem.plan, t),
-                    air: selectedItem.plan.air,
-                  })}
-                </span>
-                {selectedItem.oldPrice > selectedItem.plan.price ? (
-                  <span className={s.footerSave}>
-                    {t('bundles.save', {
-                      amount: selectedItem.oldPrice - selectedItem.plan.price,
-                    })}
-                    <TgStarWhiteIcon className={s.footerSaveIcon} />
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <div className={s.footerPrice}>
-              <span className={s.strike}>
-                <TgStarWhiteIcon className={s.strikeIcon} />
-                <span>{selectedItem.oldPrice}</span>
+          <div className={s.footerSummary}>
+            <span className={s.footerText}>
+              {t('bundles.summary', {
+                period: formatPlanPeriod(selectedItem.plan, t),
+                air: selectedItem.plan.air,
+              })}
+            </span>
+            {savings > 0 ? (
+              <span className={s.footerSave}>
+                {t('bundles.save', { amount: savings })}
+                <TgStarWhiteIcon className={s.footerSaveIcon} />
               </span>
-              <span className={s.priceMain}>
-                <TgStarWhiteIcon className={s.priceIcon} />
-                <span className={s.price}>{selectedItem.plan.price}</span>
-              </span>
-            </div>
+            ) : null}
           </div>
 
           <button
@@ -342,8 +279,12 @@ export function BundlesPage() {
             onClick={handleBuy}
             disabled={isBuying}
           >
-            {t('bundles.cta')}
-            <SparklesIcon className={s.ctaIcon} aria-hidden />
+            <span>{t('bundles.cta')}</span>
+            <span className={s.ctaDot} aria-hidden />
+            <span className={s.ctaPrice}>
+              <TgStarWhiteIcon className={s.ctaIcon} />
+              {selectedItem.plan.price}
+            </span>
           </button>
         </div>
       </footer>
