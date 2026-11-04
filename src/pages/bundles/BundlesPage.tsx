@@ -13,7 +13,7 @@ import { useLaunchParams } from '@/context/LaunchParamsContext';
 
 import s from './BundlesPage.module.scss';
 
-const BUNDLE_DISCOUNTS = [57, 63, 73, 73];
+const BUNDLE_DISCOUNTS = [50, 60, 70, 75];
 
 type BundleItem = {
   plan: IPlan;
@@ -70,16 +70,16 @@ function BundleCountdown({ expiresAt, onExpire }: BundleCountdownProps) {
 
   return (
     <section className={s.hero}>
-      <div className={s.timer}>
+      <div className={s.heroCopy}>
         <span className={s.timerLabel}>
           <span className={`material-symbols-outlined filled ${s.timerIcon}`}>
             bolt
           </span>
           {t('bundles.limitedOffer')}
         </span>
-        <span className={s.timerValue}>{formatCountdown(remainingMs)}</span>
+        <p className={s.heroNote}>{t('bundles.onlyHere')}</p>
       </div>
-      <p className={s.heroNote}>{t('bundles.onlyHere')}</p>
+      <span className={s.timerValue}>{formatCountdown(remainingMs)}</span>
     </section>
   );
 }
@@ -198,59 +198,72 @@ export function BundlesPage() {
             const isSelected = plan.id === selectedItem.plan.id;
 
             return (
-              <button
-                type="button"
+              <div
                 key={plan.id}
-                className={cn(s.card, [], { [s.cardSelected]: isSelected })}
-                data-plan-id={plan.id}
-                aria-pressed={isSelected}
-                onClick={() => setSelectedId(plan.id)}
+                className={cn(s.cardWrap, [], {
+                  [s.cardWrapFeatured]: plan.isRecommended,
+                })}
               >
-                <div className={s.cardMain}>
+                {plan.isRecommended ? (
+                  <span className={s.cardBadge}>{t('shop.mostPopular')}</span>
+                ) : null}
+                <button
+                  type="button"
+                  className={cn(s.card, [], { [s.cardSelected]: isSelected })}
+                  data-plan-id={plan.id}
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedId(plan.id)}
+                >
                   <div className={s.cardHead}>
+                    <span
+                      className={`material-symbols-outlined filled ${s.cardTitleIcon}`}
+                    >
+                      diamond
+                    </span>
                     <span className={s.cardTitle}>
-                      {formatPlanPeriod(plan, t)}
+                      {t('bundles.premium', {
+                        period: formatPlanPeriod(plan, t),
+                      })}
                     </span>
-                    {plan.isRecommended ? (
-                      <span className={s.cardBadge}>
-                        {t('shop.mostPopular')}
-                      </span>
-                    ) : null}
                   </div>
 
-                  <div className={s.cardMeta}>
-                    <span className={s.metaItem}>
-                      <SparklesIcon className={s.metaIcon} aria-hidden />
-                      <span>{t('bundles.credits', { air: plan.air })}</span>
-                    </span>
-                    {gifts.map((gift) => (
-                      <span className={s.metaItem} key={gift.id}>
-                        <img
-                          src={gift.imgUrl}
-                          alt=""
-                          className={s.metaImage}
-                          draggable={false}
-                        />
-                        <span className={s.metaText}>{gift.name}</span>
+                  <div className={s.cardBottom}>
+                    <div className={s.cardMeta}>
+                      <span className={s.metaItem}>
+                        <SparklesIcon className={s.metaIcon} aria-hidden />
+                        <span>{t('bundles.credits', { air: plan.air })}</span>
                       </span>
-                    ))}
-                  </div>
-                </div>
+                      {gifts.map((gift) => (
+                        <span className={s.metaItem} key={gift.id}>
+                          <img
+                            src={gift.imgUrl}
+                            alt=""
+                            className={s.metaImage}
+                            draggable={false}
+                          />
+                          <span className={s.metaText}>{gift.name}</span>
+                        </span>
+                      ))}
+                    </div>
 
-                <div className={s.cardPrice}>
-                  <span className={s.strike}>
-                    <TgStarWhiteIcon className={s.strikeIcon} />
-                    <span>{oldPrice}</span>
-                  </span>
-                  <span className={s.priceMain}>
-                    <TgStarWhiteIcon className={s.priceIcon} />
-                    <span className={s.price}>{plan.price}</span>
-                  </span>
-                  {discount > 0 ? (
-                    <span className={s.discount}>-{discount}%</span>
-                  ) : null}
-                </div>
-              </button>
+                    <div className={s.cardPrice}>
+                      <span className={s.strike}>
+                        <TgStarWhiteIcon className={s.strikeIcon} />
+                        <span>{oldPrice}</span>
+                      </span>
+                      <span className={s.priceMain}>
+                        <TgStarWhiteIcon className={s.priceIcon} />
+                        <span className={s.price}>{plan.price}</span>
+                      </span>
+                      {discount > 0 ? (
+                        <span className={s.ribbon}>
+                          <span className={s.discount}>-{discount}%</span>
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </button>
+              </div>
             );
           })}
         </div>
