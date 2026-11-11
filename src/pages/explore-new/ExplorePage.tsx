@@ -289,7 +289,7 @@ function openScenarioSlugDeepLink(slug: string) {
     return false;
   }
 
-  TelegramWebApp.openTelegramLink(`https://t.me/${botUsername}?start=${slug}`);
+  TelegramWebApp.openTelegramLink(`https://t.me/${botUsername}?start=s_${slug}`);
   TelegramWebApp.close();
   return true;
 }
