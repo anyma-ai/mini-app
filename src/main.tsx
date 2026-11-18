@@ -7,8 +7,6 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { App } from '@/App';
-import { LaunchParamsProvider } from '@/context/LaunchParamsContext';
-import { UserProvider } from '@/context/UserContext';
 
 const queryClient = new QueryClient();
 
@@ -16,11 +14,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <LaunchParamsProvider>
-          <UserProvider>
-            <App />
-          </UserProvider>
-        </LaunchParamsProvider>
+        <App />
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
