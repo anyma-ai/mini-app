@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import logo from '@/assets/logo.jpg';
+import { useCustomCharacterDeeplink } from '@/common/hooks/useCustomCharacterDeeplink';
 import {
   NoirBottomDock,
   type NoirDockItem,
@@ -18,6 +19,7 @@ export function MiniAppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useUser();
+  useCustomCharacterDeeplink();
   const dockItems: NoirDockItem[] = [
     { label: t('layout.dock.explore'), path: '/explore', icon: 'explore' },
     { label: t('layout.dock.collection'), path: '/collection', icon: 'image' },

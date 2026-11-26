@@ -52,14 +52,18 @@ export async function patchMeCountryOnce(): Promise<void> {
   }
 }
 
-export async function postMeDeeplink(ref: string): Promise<void> {
+export type MeDeeplinkPayload = {
+  ref: string;
+  type: 'broadcast' | 'cc';
+  // public id of the post the link came from
+  postId?: string;
+};
+
+export async function postMeDeeplink(body: MeDeeplinkPayload): Promise<void> {
   const response = await apiFetch('/me/deeplink', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ref,
-      type: 'broadcast',
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok && response.status !== 204) {

@@ -90,7 +90,7 @@ export function LaunchParamsProvider({
 
     window.sessionStorage.setItem(storageKey, 'pending');
 
-    void postMeDeeplink(ref)
+    void postMeDeeplink({ ref, type: 'broadcast' })
       .then(() => {
         window.sessionStorage.setItem(storageKey, 'sent');
       })
